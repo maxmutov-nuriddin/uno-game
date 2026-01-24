@@ -137,6 +137,16 @@ body {
     z-index: 4;
 }
 
+.hand-actions {
+    position: absolute;
+    bottom: 120px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    z-index: 5;
+}
+
 .player-tile {
     transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
@@ -390,6 +400,10 @@ body {
 .fanned-card.dimmed {
     filter: brightness(0.4) saturate(0.8);
     cursor: default;
+}
+
+.fanned-card.selected {
+    filter: drop-shadow(0 10px 20px rgba(255, 225, 120, 0.35));
 }
 
 

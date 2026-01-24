@@ -21,6 +21,7 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
 
    const [modalOpen, setModalOpen] = useState(false);
    const [pendingCardId, setPendingCardId] = useState(null);
+   const [selectedIds, setSelectedIds] = useState([]);
    const [unoFlashIds, setUnoFlashIds] = useState(new Set());
 
    const isMyTurn = turnPlayerId === myId;
@@ -37,15 +38,56 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
       { slotClass: 'seat-bottom-right', player: opponents[2] },
    ];
 
-   const onPlay = (cardId) => {
-      if (!isMyTurn) return;
-      const card = myHand.find(c => c.id === cardId);
-      if (card.type === 'wild' || card.type === 'plus4') {
-         setPendingCardId(cardId);
-         setModalOpen(true);
+   const clearSelection = () => setSelectedIds([]);
+
+   const onPlaySelected = () => {
+      if (!isMyTurn || selectedIds.length === 0) return;
+      if (selectedIds.length === 1) {
+         socket.emit('game:play', { cardId: selectedIds[0], chosenColor: null });
       } else {
-         socket.emit('game:play', { cardId, chosenColor: null });
+         socket.emit('game:play', { cardIds: selectedIds });
       }
+      clearSelection();
+   };
+
+   const onCardClick = (card) => {
+      if (!isMyTurn) return;
+      if (!card) return;
+
+      if (card.type === 'wild' || card.type === 'plus4') {
+         clearSelection();
+         setPendingCardId(card.id);
+         setModalOpen(true);
+         return;
+      }
+
+      if (card.type !== 'number') {
+         clearSelection();
+         if (canPlayCard(card)) {
+            socket.emit('game:play', { cardId: card.id, chosenColor: null });
+         }
+         return;
+      }
+
+      if (selectedIds.length === 0) {
+         if (!canPlayCard(card)) return;
+         setSelectedIds([card.id]);
+         return;
+      }
+
+      if (selectedIds.includes(card.id)) {
+         setSelectedIds(prev => prev.filter(id => id !== card.id));
+         return;
+      }
+
+      const first = myHand.find(c => c.id === selectedIds[0]);
+      if (!first || first.type !== 'number') {
+         clearSelection();
+         return;
+      }
+      if (card.value !== first.value) return;
+
+      setSelectedIds(prev => [...prev, card.id]);
    };
 
    const canPlayCard = (card) => {
@@ -84,6 +126,16 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
       turnPlayerId,
       myId,
    ]);
+
+   useEffect(() => {
+      if (!isMyTurn) {
+         clearSelection();
+      }
+   }, [isMyTurn]);
+
+   useEffect(() => {
+      setSelectedIds(prev => prev.filter(id => myHand.some(card => card.id === id)));
+   }, [myHand]);
 
    useEffect(() => {
       if (!socket) return;
@@ -174,10 +226,20 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
             <motion.div
                className="deck-pill"
                whileHover={{ scale: 1.05 }}
-               onClick={() => isMyTurn && socket.emit('game:draw')}
+               onClick={() => {
+                  if (!isMyTurn) return;
+                  if (pendingDrawCount > 0 && pendingDrawPlayerId === myId) {
+                     for (let i = 0; i < pendingDrawCount; i += 1) {
+                        socket.emit('game:draw');
+                     }
+                     return;
+                  }
+                  socket.emit('game:draw');
+                  socket.emit('game:pass');
+               }}
             >
                <Card card={null} size="small" />
-               <div style={{ textAlign: 'center', fontSize: '0.7rem', marginTop: '5px', opacity: 0.6 }}>KARTA OLISH</div>
+               <div style={{ textAlign: 'center', fontSize: '0.7rem', marginTop: '5px', opacity: 0.6 }}>PASS</div>
             </motion.div>
 
             <div className="active-card-box">
@@ -212,12 +274,23 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
             <div className="hand-area">
                <Hand
                   hand={myHand}
-                  onPlayCard={onPlay}
+                  onCardClick={onCardClick}
+                  selectedIds={selectedIds}
                   isMyTurn={isMyTurn}
                   activeCard={activeCard}
                   currentColor={currentColor}
                />
             </div>
+            {isMyTurn && selectedIds.length > 0 && (
+               <div className="hand-actions">
+                  <button className="btn-pill btn-primary" onClick={onPlaySelected}>
+                     PLAY {selectedIds.length}
+                  </button>
+                  <button className="btn-pill btn-secondary" onClick={clearSelection}>
+                     CLEAR
+                  </button>
+               </div>
+            )}
          </div>
 
          {/* Color Picker & Winner Modals are same as before, but with better glass styling */}

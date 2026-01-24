@@ -52,7 +52,7 @@ const Home = () => {
                <div className="input-group" style={{ margin: '20px 0' }}>
                   <label>START CARDS: {startCards}</label>
                   <input
-                     type="range" min="2" max="10"
+                     type="range" min="5" max="10"
                      style={{ width: '100%', accentColor: 'var(--primary)' }}
                      value={startCards}
                      onChange={e => setStartCards(e.target.value)}

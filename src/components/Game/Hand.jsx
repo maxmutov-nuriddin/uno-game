@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Card from './Card';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const Hand = ({ hand, onPlayCard, isMyTurn, activeCard, currentColor }) => {
+const Hand = ({ hand, onCardClick, selectedIds = [], isMyTurn, activeCard, currentColor }) => {
 
    // Server-side rules logic for dimming
    const isPlayable = (card) => {
@@ -54,15 +54,13 @@ const Hand = ({ hand, onPlayCard, isMyTurn, activeCard, currentColor }) => {
                      exit={{ opacity: 0, y: 50, scale: 0 }}
                      whileHover={playable ? { y: layout.y - 40, scale: 1.08, zIndex: 1000 } : {}}
                      whileTap={playable ? { scale: 0.98 } : {}}
-                     className={`fanned-card ${!playable && isMyTurn ? 'dimmed' : ''}`}
+                     className={`fanned-card ${!playable && isMyTurn ? 'dimmed' : ''} ${selectedIds.includes(card.id) ? 'selected' : ''}`}
                      style={{ position: 'absolute', zIndex: layout.z, transformOrigin: 'bottom center' }}
                   >
                      <Card
                         card={card}
                         playable={playable}
-                        onClick={() => {
-                           if (playable) onPlayCard(card.id);
-                        }}
+                        onClick={() => onCardClick(card)}
                      />
                   </motion.div>
                );
