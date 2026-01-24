@@ -1,146 +1,144 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSocket } from '../../context/SocketContext';
 import Hand from './Hand';
 import Card from './Card';
+import { motion } from 'framer-motion';
 
-const Board = ({ gameState }) => {
+const Board = ({ gameState, myHand, myId }) => {
    const socket = useSocket();
-   const { players, me, activeCard, currentColor, direction, status, roomId } = gameState;
-   const [showColorPicker, setShowColorPicker] = useState(false);
-   const [pendingCardIndex, setPendingCardIndex] = useState(null);
+   const {
+      roomId,
+      players,
+      activeCard,
+      currentColor,
+      direction,
+      turnPlayerId,
+      status
+   } = gameState;
 
-   const isMyTurn = gameState.players.find(p => p.id === me.id)?.isTurn;
-   const activePlayer = players.find(p => p.isTurn);
+   const [modalOpen, setModalOpen] = useState(false);
+   const [pendingCardId, setPendingCardId] = useState(null);
 
-   const handleDraw = () => {
+   const isMyTurn = turnPlayerId === myId;
+   const activePlayer = players.find(p => p.id === turnPlayerId);
+
+   const onPlay = (cardId) => {
       if (!isMyTurn) return;
-      socket.emit('drawCard');
-   };
-
-   const handlePass = () => {
-      if (!isMyTurn) return; // Should only show if drawn? Backend allows pass anytime for now
-      socket.emit('passTurn');
-   };
-
-   const onPlayCard = (index, card) => {
-      if (!isMyTurn) return;
+      const card = myHand.find(c => c.id === cardId);
 
       if (card.type === 'wild' || card.type === 'plus4') {
-         setPendingCardIndex(index);
-         setShowColorPicker(true);
+         setPendingCardId(cardId);
+         setModalOpen(true);
       } else {
-         socket.emit('playCard', { cardIndex: index, color: null });
+         socket.emit('game:play', { cardId, chosenColor: null });
       }
    };
 
    const handleColorSelect = (color) => {
-      socket.emit('playCard', { cardIndex: pendingCardIndex, color });
-      setShowColorPicker(false);
-      setPendingCardIndex(null);
+      socket.emit('game:play', { cardId: pendingCardId, chosenColor: color });
+      setModalOpen(false);
+      setPendingCardId(null);
    };
 
-   // Calculate opponent positions (simplified)
-   const opponents = players.filter(p => p.id !== me.id);
+   const handleDraw = () => {
+      if (!isMyTurn) return;
+      socket.emit('game:draw');
+   };
+
+   const handlePass = () => {
+      if (!isMyTurn) return;
+      socket.emit('game:pass');
+   };
+
+   // Calculate position for opponents (simplified circular or top row)
+   const opponents = players.filter(p => p.id !== myId);
 
    return (
-      <div className="game-board">
-         <div className="game-info">
-            Room: {roomId} | Direction: {direction === 1 ? 'HW' : 'CCW'}
+      <div className="game-board-layout">
+         {/* Header Info */}
+         <div className="game-header">
+            <div className="room-badge">ID: {roomId}</div>
+            <div className="turn-badge">
+               {isMyTurn ? "Sizning navbatingiz!" : `${activePlayer?.name} o‘ylamoqda...`}
+            </div>
+            <div className="direction-badge">
+               {direction === 1 ? '⟳' : '⟲'}
+            </div>
          </div>
 
-         <div className="top-players">
+         {/* Opponents Area */}
+         <div className="opponents-strip">
             {opponents.map(p => (
-               <div key={p.id} className={`opponent ${p.isTurn ? 'active' : ''}`}>
-                  <div className="name">{p.name}</div>
-                  <div className="card-count">🎴 {p.cardCount}</div>
-               </div>
+               <motion.div
+                  key={p.id}
+                  animate={{
+                     scale: p.id === turnPlayerId ? 1.1 : 1,
+                     borderColor: p.id === turnPlayerId ? '#ff9800' : 'transparent'
+                  }}
+                  className={`opponent-avatar ${p.id === turnPlayerId ? 'turn-glow' : ''}`}
+               >
+                  <div className="avatar-circle">{p.name[0]}</div>
+                  <div className="opp-info">
+                     <span className="opp-name">{p.name}</span>
+                     <span className="opp-cards">🎴 {p.cardCount}</span>
+                  </div>
+               </motion.div>
             ))}
          </div>
 
-         <div className="center-area">
-            <div className="deck" onClick={handleDraw}>
-               <Card card={null} /> {/* Back of card */}
+         {/* Center Field */}
+         <div className="center-field">
+            <div className="deck-pile" onClick={handleDraw}>
+               <Card card={null} />
+               <span className="label">Olish</span>
             </div>
 
-            <div className="discard-pile">
-               <Card card={activeCard} />
+            <div className="active-pile">
+               <motion.div
+                  key={activeCard?.id || 'start'}
+                  initial={{ opacity: 0, x: 100, rotate: 20 }}
+                  animate={{ opacity: 1, x: 0, rotate: 0 }}
+               >
+                  <Card card={activeCard} />
+               </motion.div>
             </div>
 
             {currentColor && (
-               <div
-                  className="current-color-indicator"
-                  style={{ background: currentColor }}
-                  title={`Current Color: ${currentColor}`}
+               <motion.div
+                  className="color-indicator"
+                  animate={{ backgroundColor: currentColor }}
+                  title="Current Color"
                />
             )}
          </div>
 
-         {showColorPicker && (
-            <div className="color-picker-overlay">
-               <div className="color-picker">
-                  <h3>Rangni tanlang:</h3>
-                  <div className="colors">
+         {/* Controls */}
+         <div className="controls-area">
+            {isMyTurn && <button className="btn-small" onClick={handlePass}>O‘tkazish</button>}
+         </div>
+
+         {/* Player Hand */}
+         <div className="my-hand-area">
+            <Hand hand={myHand} onPlayCard={onPlay} isMyTurn={isMyTurn} />
+         </div>
+
+         {/* Modal for Color */}
+         {modalOpen && (
+            <div className="modal-overlay">
+               <div className="color-modal">
+                  <h3>Rangni tanlang</h3>
+                  <div className="color-grid">
                      {['red', 'blue', 'green', 'yellow'].map(c => (
                         <button
                            key={c}
-                           style={{ background: c }}
+                           className={`btn-color ${c}`}
                            onClick={() => handleColorSelect(c)}
-                        ></button>
+                        />
                      ))}
                   </div>
                </div>
             </div>
          )}
-
-         <div className={`my-section ${isMyTurn ? 'active-turn' : ''}`}>
-            <div className="turn-indicator">
-               {isMyTurn ? "Sizning navbatingiz!" : `${activePlayer?.name} o‘ylamoqda...`}
-            </div>
-
-            <Hand hand={me.hand} onPlayCard={onPlayCard} isMyTurn={isMyTurn} />
-
-            {isMyTurn && (
-               <button className="pass-btn" onClick={handlePass}>O‘tkazish (Pass)</button>
-            )}
-         </div>
-
-         <style>{`
-                .color-picker-overlay {
-                    position: fixed;
-                    top: 0; left: 0; right: 0; bottom: 0;
-                    background: rgba(0,0,0,0.8);
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    z-index: 100;
-                }
-                .color-picker {
-                    background: #333;
-                    padding: 20px;
-                    border-radius: 10px;
-                    text-align: center;
-                }
-                .color-picker .colors {
-                    display: flex;
-                    gap: 10px;
-                }
-                .color-picker button {
-                    width: 60px;
-                    height: 60px;
-                    border: 2px solid white;
-                }
-                .my-section {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                }
-                .turn-indicator {
-                    margin-bottom: 10px;
-                    font-size: 1.2rem;
-                    font-weight: bold;
-                    color: ${isMyTurn ? '#ff5722' : '#888'};
-                }
-            `}</style>
       </div>
    );
 };

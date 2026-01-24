@@ -1,36 +1,48 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 
-const Card = ({ card, onClick, playable }) => {
-   // Determine card background color
-   const getColor = (c) => {
-      if (!c) return 'black';
-      return c; // 'red', 'blue', 'green', 'yellow', 'black'
-   };
+const Card = ({ card, onClick, playable = false, size = 'normal' }) => {
+   // size: 'normal' | 'small' | 'large'
 
-   const displayValue = () => {
-      if (!card) return 'UNO'; // Back of card
-      if (card.type === 'number') return card.value;
-      if (card.type === 'skip') return '🚫';
-      if (card.type === 'reverse') return '🔁';
-      if (card.type === 'plus2') return '+2';
-      if (card.type === 'wild') return '🌈';
-      if (card.type === 'plus4') return '+4';
+   if (!card) {
+      // BACK OF CARD
+      return (
+         <div className={`card card-back ${size}`} onClick={onClick}>
+            <div className="card-inner-back">
+               <span className="logo-text">UNO</span>
+            </div>
+         </div>
+      );
+   }
+
+   const { color, type, value } = card;
+
+   const getSymbol = () => {
+      if (type === 'number') return value;
+      if (type === 'skip') return '⊘';
+      if (type === 'reverse') return '⇄';
+      if (type === 'plus2') return '+2';
+      if (type === 'plus4') return '+4';
+      if (type === 'wild') return '❖';
       return '?';
    };
 
-   const isBack = !card;
+   const symbol = getSymbol();
+   const isSpecial = type !== 'number';
 
    return (
-      <div
-         className={`card ${isBack ? 'card-back' : 'card-face'} ${playable ? 'playable' : ''} ${card?.color || 'black'}`}
+      <motion.div
+         whileHover={playable ? { y: -20, scale: 1.1, zIndex: 100 } : {}}
+         whileTap={playable ? { scale: 0.95 } : {}}
+         className={`card card-face ${color} ${size} ${playable ? 'playable' : ''}`}
          onClick={onClick}
       >
-         <div className="card-center">
-            {displayValue()}
+         <div className="card-design-oval">
+            <span className="card-big-symbol" data-symbol={symbol}>{symbol}</span>
          </div>
-         {!isBack && <div className="card-corner top-left">{displayValue()}</div>}
-         {!isBack && <div className="card-corner bottom-right">{displayValue()}</div>}
-      </div>
+         <span className="corner-symbol top-left">{symbol}</span>
+         <span className="corner-symbol bottom-right">{symbol}</span>
+      </motion.div>
    );
 };
 
