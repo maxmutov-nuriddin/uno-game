@@ -22,18 +22,19 @@ const Home = () => {
 
    return (
       <motion.div
-         initial={{ opacity: 0, y: 30 }}
-         animate={{ opacity: 1, y: 0 }}
-         transition={{ duration: 0.5 }}
+         initial={{ opacity: 0, scale: 0.9, y: 30 }}
+         animate={{ opacity: 1, scale: 1, y: 0 }}
+         transition={{ duration: 0.8, ease: "easeOut" }}
          className="home-container premium-box"
-         style={{ marginTop: '10vh' }}
       >
          <div className="home-backdrop" aria-hidden="true"></div>
          <div className="home-slice" aria-hidden="true"></div>
          <div className="home-hero">
             <div>
                <div className="home-badge">PLAY HUB</div>
-               <h1 className="logo">UNO<span>Hub</span></h1>
+               <h1 className="logo">
+                  UNO<span>Hub</span>
+               </h1>
                <p className="home-tagline">Quick rooms, fast rounds, clean UI. Jump in and play.</p>
             </div>
             <div className="home-orb" aria-hidden="true"></div>
