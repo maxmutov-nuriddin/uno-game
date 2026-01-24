@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from 'react';
 import { SocketProvider, useSocket } from './context/SocketContext';
 import Home from './components/Home';
@@ -35,6 +36,7 @@ function Content() {
         socket.emit('session:restore', { roomId, sessionToken });
       } catch (e) {
         localStorage.removeItem('uno_session');
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsRestoring(false);
       }
     } else {
