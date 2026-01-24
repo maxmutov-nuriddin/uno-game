@@ -7,28 +7,31 @@ const Home = () => {
    const [nickname, setNickname] = useState('');
    const [roomId, setRoomId] = useState('');
    const [startCards, setStartCards] = useState(7);
-   const [mode, setMode] = useState('menu'); // menu, create, join
+   const [autoDrawEnabled, setAutoDrawEnabled] = useState(true);
+   const [mode, setMode] = useState('menu');
 
    const handleCreate = () => {
-      if (!nickname) return alert('Ismingizni kiriting!');
-      socket.emit('room:create', { nickname, startCardsCount: startCards });
+      if (!nickname) return;
+      socket.emit('room:create', { nickname, startCardsCount: startCards, autoDrawEnabled });
    };
 
    const handleJoin = () => {
-      if (!nickname || !roomId) return alert('Ism va Room ID kiriting!');
+      if (!nickname || !roomId) return;
       socket.emit('room:join', { nickname, roomId: roomId.toUpperCase() });
    };
 
    return (
       <motion.div
-         initial={{ opacity: 0, y: 20 }}
+         initial={{ opacity: 0, y: 30 }}
          animate={{ opacity: 1, y: 0 }}
+         transition={{ duration: 0.5 }}
          className="home-container premium-box"
+         style={{ marginTop: '10vh' }}
       >
          <h1 className="logo">UNO<span>Hub</span></h1>
 
          <div className="input-group">
-            <label>Nickname</label>
+            <label>NICKNAME</label>
             <input
                type="text"
                placeholder="Ismingiz..."
@@ -39,39 +42,50 @@ const Home = () => {
 
          {mode === 'menu' && (
             <div className="menu-buttons">
-               <button className="btn-primary" onClick={() => setMode('create')}>Xona Yaratish</button>
-               <button className="btn-secondary" onClick={() => setMode('join')}>Qo‘shilish</button>
+               <button className="btn-glass btn-primary" onClick={() => setMode('create')}>XONA YARATISH</button>
+               <button className="btn-glass btn-secondary" onClick={() => setMode('join')}>QO‘SHILISH</button>
             </div>
          )}
 
          {mode === 'create' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="sub-menu">
-               <div className="input-group">
-                  <label>Boshlang‘ich kartalar: {startCards}</label>
+               <div className="input-group" style={{ margin: '20px 0' }}>
+                  <label>START CARDS: {startCards}</label>
                   <input
                      type="range" min="2" max="10"
+                     style={{ width: '100%', accentColor: 'var(--primary)' }}
                      value={startCards}
                      onChange={e => setStartCards(e.target.value)}
                   />
                </div>
-               <button className="btn-primary" onClick={handleCreate}>Yaratish</button>
-               <button className="btn-text" onClick={() => setMode('menu')}>Ortga</button>
+               <div className="input-group" style={{ margin: '20px 0' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                     <input
+                        type="checkbox"
+                        checked={autoDrawEnabled}
+                        onChange={e => setAutoDrawEnabled(e.target.checked)}
+                     />
+                     AUTO DRAW (NO MOVE / +2 +4)
+                  </label>
+               </div>
+               <button className="btn-glass btn-primary" onClick={handleCreate}>START GAME</button>
+               <button className="btn-glass btn-secondary" onClick={() => setMode('menu')}>BACK</button>
             </motion.div>
          )}
 
          {mode === 'join' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="sub-menu">
-               <div className="input-group">
-                  <label>Room ID</label>
+               <div className="input-group" style={{ margin: '20px 0' }}>
+                  <label>ROOM ID</label>
                   <input
                      type="text"
-                     placeholder="Xona kodi"
+                     placeholder="XONA KODI"
                      value={roomId}
                      onChange={e => setRoomId(e.target.value)}
                   />
                </div>
-               <button className="btn-primary" onClick={handleJoin}>Kirish</button>
-               <button className="btn-text" onClick={() => setMode('menu')}>Ortga</button>
+               <button className="btn-glass btn-primary" onClick={handleJoin}>JOIN ROOM</button>
+               <button className="btn-glass btn-secondary" onClick={() => setMode('menu')}>BACK</button>
             </motion.div>
          )}
 
