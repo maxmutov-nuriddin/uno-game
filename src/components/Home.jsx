@@ -28,7 +28,16 @@ const Home = () => {
          className="home-container premium-box"
          style={{ marginTop: '10vh' }}
       >
-         <h1 className="logo">UNO<span>Hub</span></h1>
+         <div className="home-backdrop" aria-hidden="true"></div>
+         <div className="home-slice" aria-hidden="true"></div>
+         <div className="home-hero">
+            <div>
+               <div className="home-badge">PLAY HUB</div>
+               <h1 className="logo">UNO<span>Hub</span></h1>
+               <p className="home-tagline">Quick rooms, fast rounds, clean UI. Jump in and play.</p>
+            </div>
+            <div className="home-orb" aria-hidden="true"></div>
+         </div>
 
          <div className="input-group">
             <label>NICKNAME</label>
@@ -68,8 +77,10 @@ const Home = () => {
                      AUTO DRAW (NO MOVE / +2 +4)
                   </label>
                </div>
-               <button className="btn-glass btn-primary" onClick={handleCreate}>START GAME</button>
-               <button className="btn-glass btn-secondary" onClick={() => setMode('menu')}>BACK</button>
+               <div className="form-row">
+                  <button className="btn-glass btn-primary" onClick={handleCreate}>START GAME</button>
+                  <button className="btn-glass btn-secondary" onClick={() => setMode('menu')}>BACK</button>
+               </div>
             </motion.div>
          )}
 
@@ -84,8 +95,10 @@ const Home = () => {
                      onChange={e => setRoomId(e.target.value)}
                   />
                </div>
-               <button className="btn-glass btn-primary" onClick={handleJoin}>JOIN ROOM</button>
-               <button className="btn-glass btn-secondary" onClick={() => setMode('menu')}>BACK</button>
+               <div className="form-row">
+                  <button className="btn-glass btn-primary" onClick={handleJoin}>JOIN ROOM</button>
+                  <button className="btn-glass btn-secondary" onClick={() => setMode('menu')}>BACK</button>
+               </div>
             </motion.div>
          )}
 

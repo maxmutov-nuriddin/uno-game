@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=Bebas+Neue&display=swap");
 
 :root {
   --bg-dark: #121418;
@@ -168,7 +168,7 @@ body {
   transform: translateX(-50%);
   display: flex;
   gap: 10px;
-  z-index: 8;
+  z-index: 5;
 }
 
 .player-tile {
@@ -310,52 +310,148 @@ body {
 
 .home-container,
 .lobby-container {
-  width: min(520px, 92vw);
+  width: min(560px, 92vw);
+}
+
+.home-container {
+  text-align: left;
+  overflow: hidden;
+}
+
+.home-backdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(700px 260px at 0% 0%, rgba(255, 218, 76, 0.18), transparent 60%),
+    radial-gradient(520px 320px at 100% 100%, rgba(226, 28, 35, 0.18), transparent 60%),
+    linear-gradient(120deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+  pointer-events: none;
+}
+
+.home-slice {
+  position: absolute;
+  right: -140px;
+  top: -50px;
+  width: 260px;
+  height: 260px;
+  border-radius: 40px;
+  transform: rotate(18deg);
+  background: linear-gradient(135deg, rgba(255, 218, 76, 0.28), rgba(12, 158, 217, 0.16));
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
+.home-hero {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 18px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.home-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 0.7rem;
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.06);
+  margin-bottom: 10px;
+}
+
+.home-tagline {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.75);
+  margin-top: 6px;
+  max-width: 320px;
+  line-height: 1.4;
+}
+
+.home-orb {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255, 226, 91, 0.8), transparent 55%),
+    radial-gradient(circle at 70% 70%, rgba(226, 28, 35, 0.7), transparent 55%),
+    radial-gradient(circle at 40% 60%, rgba(12, 158, 217, 0.5), transparent 60%),
+    rgba(12, 12, 12, 0.6);
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.45);
+  filter: blur(0.2px);
+  animation: orbFloat 6s ease-in-out infinite;
+}
+
+@keyframes orbFloat {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+.input-group {
+  margin-top: 12px;
 }
 
 .logo {
   position: relative;
   display: inline-block;
-  font-size: 3.6rem;
-  font-weight: 900;
+  font-size: 3.8rem;
+  font-weight: 700;
+  font-family: "Bebas Neue", "Outfit", sans-serif;
   letter-spacing: 2px;
   color: var(--uno-yellow);
   text-shadow:
     0 2px 0 #000,
-    0 6px 16px rgba(0, 0, 0, 0.5);
+    0 10px 24px rgba(0, 0, 0, 0.45);
   margin-bottom: 20px;
+  transform: skewX(-6deg);
+}
+
+.menu-buttons,
+.sub-menu {
+  display: grid;
+  gap: 12px;
+}
+
+.form-row {
+  display: grid;
+  gap: 10px;
 }
 
 .logo span {
   color: #fff;
-  font-weight: 600;
+  font-weight: 500;
   margin-left: 6px;
   font-size: 1.1rem;
   vertical-align: middle;
+  display: inline-block;
+  transform: skewX(6deg);
 }
 
 .logo::before {
   content: "";
   position: absolute;
-  left: -18px;
-  right: -18px;
+  left: -20px;
+  right: -20px;
   top: 50%;
-  height: 74px;
-  transform: translateY(-50%) rotate(-9deg);
+  height: 68px;
+  transform: translateY(-50%) rotate(-8deg);
   background: var(--uno-red);
   border-radius: 999px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.45);
   z-index: -2;
 }
 
 .logo::after {
   content: "";
   position: absolute;
-  left: -8px;
-  right: -8px;
+  left: -10px;
+  right: -10px;
   top: 50%;
-  height: 58px;
-  transform: translateY(-50%) rotate(-9deg);
+  height: 52px;
+  transform: translateY(-50%) rotate(-8deg);
   background: var(--uno-black);
   border-radius: 999px;
   z-index: -1;
@@ -373,10 +469,11 @@ body {
   width: 100%;
   padding: 12px 14px;
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(10, 10, 10, 0.65);
   color: #fff;
   outline: none;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
 }
 
 .input-group input[type="text"]::placeholder {
@@ -393,6 +490,7 @@ body {
   font-weight: 700;
   letter-spacing: 1px;
   cursor: pointer;
+  text-transform: uppercase;
   transition:
     transform 0.15s ease,
     box-shadow 0.2s ease;
@@ -404,13 +502,13 @@ body {
 }
 
 .btn-glass.btn-primary {
-  background: linear-gradient(135deg, var(--uno-yellow), #ffe25b);
+  background: linear-gradient(135deg, #ffda4c, #ffe88c);
   color: #111;
   border-color: rgba(0, 0, 0, 0.2);
 }
 
 .btn-glass.btn-secondary {
-  background: linear-gradient(135deg, var(--uno-red), #ff5a60);
+  background: linear-gradient(135deg, #e21c23, #ff5a60);
   color: #fff;
   border-color: rgba(0, 0, 0, 0.15);
 }
@@ -546,8 +644,8 @@ body {
 .fanned-card.selected {
   filter: drop-shadow(0 14px 28px rgba(255, 225, 120, 0.45))
     drop-shadow(0 0 0 rgba(0, 0, 0, 0));
-  transform: translateY(-52px) scale(1.08);
-  z-index: 1600;
+  transform: translateY(-72px) scale(1.08);
+  z-index: 2200;
 }
 
 .hand-flex.has-selection .fanned-card:not(.selected) {
@@ -696,5 +794,26 @@ body {
 
   .hand-actions {
     bottom: 210px;
+  }
+}
+
+@media (max-width: 560px) {
+  .home-container,
+  .lobby-container {
+    width: min(92vw, 420px);
+    padding: 28px 24px;
+  }
+
+  .home-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .home-orb {
+    width: 72px;
+    height: 72px;
+  }
+
+  .logo {
+    font-size: 3.2rem;
   }
 }
