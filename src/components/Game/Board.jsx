@@ -17,6 +17,7 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
       pendingDrawCount,
       pendingDrawPlayerId,
       pendingUnoIds,
+      justDrewPlayablePlayerId,
    } = gameState;
 
    const [modalOpen, setModalOpen] = useState(false);
@@ -25,6 +26,7 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
    const [unoFlashIds, setUnoFlashIds] = useState(new Set());
 
    const isMyTurn = turnPlayerId === myId;
+   const showPassAfterDraw = justDrewPlayablePlayerId === myId;
    const showUnoButton = pendingUnoIds?.includes(myId);
    const hasUnoPending = (playerId) => unoFlashIds.has(playerId);
    const lastAutoDrawTurn = useRef(null);
@@ -183,8 +185,17 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
                </div>
                <div className="opp-meta">
                   <div className="opp-name" style={{ fontSize: '0.8rem', fontWeight: 600 }}>{player.name}</div>
-                  <div className="opp-count" style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                     {cardCount}
+                  <div className="opp-cards">
+                     {Array.from({ length: Math.min(cardCount, 3) }).map((_, index) => (
+                        <img
+                           key={index}
+                           className="opp-card"
+                           style={{ '--i': index }}
+                           src="/unocards/card-back.svg"
+                           alt="Card back"
+                           draggable="false"
+                        />
+                     ))}
                   </div>
                </div>
                {hasUnoPending(player.id) && (
@@ -235,11 +246,10 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
                      return;
                   }
                   socket.emit('game:draw');
-                  socket.emit('game:pass');
                }}
             >
                <Card card={null} size="small" />
-               <div style={{ textAlign: 'center', fontSize: '0.7rem', marginTop: '5px', opacity: 0.6 }}>PASS</div>
+               <div style={{ textAlign: 'center', fontSize: '0.7rem', marginTop: '5px', opacity: 0.6 }}>DRAW</div>
             </motion.div>
 
             <div className="active-card-box">
@@ -262,6 +272,11 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
             <button className="btn-pill btn-secondary" onClick={onExit}>
                EXIT
             </button>
+            {showPassAfterDraw && (
+               <button className="btn-pill btn-secondary" onClick={() => socket.emit('game:pass')}>
+                  PASS
+               </button>
+            )}
             {showUnoButton && (
                <button className="btn-pill uno-call-btn" onClick={() => socket.emit('game:uno')}>
                   UNO!

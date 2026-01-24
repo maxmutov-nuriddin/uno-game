@@ -44,6 +44,8 @@ const Card = ({ card, onClick, playable = false, size = 'normal' }) => {
 
    const imagePath = getImagePath(card);
 
+   const highlightColor = card.type === 'wild' || card.type === 'plus4' ? (card.chosenColor || null) : null;
+
    return (
       <motion.div
          className={`card-wrapper ${size} ${playable ? 'playable' : ''}`}
@@ -52,7 +54,10 @@ const Card = ({ card, onClick, playable = false, size = 'normal' }) => {
          animate={{ opacity: 1, scale: 1 }}
          exit={{ opacity: 0, scale: 0.5 }}
       >
-         <img src={imagePath} alt={`${card.color} ${card.type}`} draggable="false" />
+         <div className={`card-highlight ${highlightColor ? `color-${highlightColor}` : ''}`}>
+            <div className="card-color-overlay" />
+            <img src={imagePath} alt={`${card.color} ${card.type}`} draggable="false" />
+         </div>
       </motion.div>
    );
 };

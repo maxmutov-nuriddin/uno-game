@@ -70,7 +70,7 @@ body {
     width: 100%;
     height: 100%;
     padding: 40px 48px 140px;
-    overflow: hidden;
+    overflow: visible;
     isolation: isolate;
 }
 
@@ -134,12 +134,12 @@ body {
     left: 0;
     width: 100%;
     height: 200px;
-    z-index: 4;
+    z-index: 7;
 }
 
 .hand-actions {
     position: absolute;
-    bottom: 120px;
+    bottom: 260px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
@@ -214,6 +214,30 @@ body {
     display: flex; align-items: center; justify-content: center;
     font-weight: 700;
     border: 1px solid rgba(255,255,255,0.2);
+}
+
+.opp-cards {
+    display: flex;
+    align-items: center;
+    height: 28px;
+    position: relative;
+    margin-top: 4px;
+}
+
+.opp-card {
+    width: 22px;
+    height: 32px;
+    border-radius: 6px;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.35);
+    transform: translateX(calc(var(--i) * 8px)) rotate(calc(var(--i) * -4deg));
+    position: absolute;
+    left: 0;
+    animation: oppFadeIn 0.4s ease both;
+}
+
+@keyframes oppFadeIn {
+    from { opacity: 0; transform: translateX(calc(var(--i) * 8px)) translateY(6px) rotate(calc(var(--i) * -4deg)); }
+    to { opacity: 1; transform: translateX(calc(var(--i) * 8px)) rotate(calc(var(--i) * -4deg)); }
 }
 
 /* 🎴 Cards & Hand */
@@ -359,6 +383,61 @@ body {
     border-radius: 16px;
 }
 
+.card-highlight {
+    width: 100%;
+    height: 100%;
+    border-radius: 16px;
+    padding: 6px;
+    background: transparent;
+    box-sizing: border-box;
+    position: relative;
+}
+
+.card-highlight.color-red {
+    box-shadow: 0 0 0 3px var(--c-red), 0 0 20px rgba(211, 47, 47, 0.35);
+}
+
+.card-highlight.color-blue {
+    box-shadow: 0 0 0 3px var(--c-blue), 0 0 20px rgba(2, 136, 209, 0.35);
+}
+
+.card-highlight.color-green {
+    box-shadow: 0 0 0 3px var(--c-green), 0 0 20px rgba(56, 142, 60, 0.35);
+}
+
+.card-highlight.color-yellow {
+    box-shadow: 0 0 0 3px var(--c-yellow), 0 0 20px rgba(251, 192, 45, 0.35);
+}
+
+.card-color-overlay {
+    position: absolute;
+    inset: 6px;
+    border-radius: 12px;
+    opacity: 0;
+    mix-blend-mode: screen;
+    pointer-events: none;
+}
+
+.card-highlight.color-red .card-color-overlay {
+    background: rgba(211, 47, 47, 0.35);
+    opacity: 0.7;
+}
+
+.card-highlight.color-blue .card-color-overlay {
+    background: rgba(2, 136, 209, 0.35);
+    opacity: 0.7;
+}
+
+.card-highlight.color-green .card-color-overlay {
+    background: rgba(56, 142, 60, 0.35);
+    opacity: 0.7;
+}
+
+.card-highlight.color-yellow .card-color-overlay {
+    background: rgba(251, 192, 45, 0.35);
+    opacity: 0.7;
+}
+
 .card-back-premium {
     background: url("/unocards/uno-card.png") center/cover no-repeat;
     display: flex;
@@ -390,6 +469,9 @@ body {
     display: flex;
     justify-content: center;
     perspective: 1000px;
+    overflow-y: visible;
+    overflow-x: hidden;
+    z-index: 7;
 }
 
 .fanned-card {
@@ -403,7 +485,17 @@ body {
 }
 
 .fanned-card.selected {
-    filter: drop-shadow(0 10px 20px rgba(255, 225, 120, 0.35));
+    filter:
+        drop-shadow(0 14px 28px rgba(255, 225, 120, 0.45))
+        drop-shadow(0 0 0 rgba(0,0,0,0));
+    transform: translateY(-52px) scale(1.08);
+    z-index: 1600;
+}
+
+.hand-flex.has-selection .fanned-card:not(.selected) {
+    filter: brightness(0.85) saturate(0.85);
+    transform: translateY(8px) scale(0.98);
+    opacity: 0.75;
 }
 
 
@@ -503,9 +595,13 @@ body {
         gap: 24px;
     }
 
+    .table-controls {
+        top: 10px;
+    }
+
     .opponents-mobile-strip {
         position: absolute;
-        top: 10px;
+        top: 58px;
         left: 50%;
         transform: translateX(-50%);
         display: flex;
@@ -513,6 +609,20 @@ body {
         z-index: 4;
     }
 
-    .hand-area { width: 100vw; overflow-x: auto; padding-bottom: 20px; }
+    .mobile-opp .player-tile {
+        position: relative;
+    }
+
+    .mobile-opp .glass-chip {
+        padding: 8px 10px;
+        gap: 8px;
+        border-radius: 16px;
+    }
+
+    .hand-area { width: 100vw; overflow-x: hidden; padding-bottom: 20px; }
     .hand-scroll-container { display: flex; padding: 0 40vw; gap: -30px; }
+
+    .hand-actions {
+        bottom: 210px;
+    }
 }
