@@ -333,11 +333,11 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
 
          <AnimatePresence>
             {winner && (
-               <motion.div className="modal-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(20px)', zIndex: 6000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <div className="premium-box" style={{ padding: '60px' }}>
-                     <h1 style={{ fontSize: '3rem' }}>🏆</h1>
-                     <h2 style={{ fontSize: '2rem', margin: '20px 0' }}>{winner} G‘OLIB!</h2>
-                     <button className="btn-pill btn-primary" style={{ margin: '0 auto' }} onClick={onExit}>NEW GAME</button>
+               <motion.div className="modal-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(30px)', zIndex: 6000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div className="premium-box" style={{ padding: '64px', textAlign: 'center' }}>
+                     <h1 style={{ fontSize: '4rem', marginBottom: '16px' }}>🏆</h1>
+                     <h2 style={{ fontSize: '2.5rem', marginBottom: '32px', fontWeight: 800 }}>{winner} G‘OLIB!</h2>
+                     <button className="btn-glass btn-primary" onClick={onExit}>EXIT</button>
                   </div>
                </motion.div>
             )}
