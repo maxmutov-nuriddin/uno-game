@@ -46,7 +46,7 @@ const Hand = ({ hand, onCardClick, selectedIds = [], isMyTurn, activeCard, curre
          ? Math.min(window.innerWidth * 0.82, 820)
          : 600;
       const maxSpread = Math.max(220, baseWidth - 140);
-      const xUnit = Math.min(26, maxSpread / Math.max(1, total - 1));
+      const xUnit = Math.min(44, maxSpread / Math.max(1, total - 1));
       const xOffset = diff * xUnit;
 
       return { rotate: rotation, y: yOffset, x: xOffset, z: index };
@@ -76,7 +76,7 @@ const Hand = ({ hand, onCardClick, selectedIds = [], isMyTurn, activeCard, curre
                      whileHover={playable && !isCoarsePointer ? { y: layout.y + selectedLift - 40, scale: 1.08, zIndex: 1000 } : {}}
                      whileTap={playable ? (isCoarsePointer ? { y: layout.y + selectedLift - 18, scale: 1.04, zIndex: 1000 } : { scale: 0.98 }) : {}}
                      className={`fanned-card ${!playable && isMyTurn ? 'dimmed' : ''} ${isSelected ? 'selected' : ''}`}
-                     style={{ position: 'absolute', zIndex: isSelected ? 2000 : layout.z, transformOrigin: 'bottom center' }}
+                     style={{ position: 'absolute', zIndex: layout.z, transformOrigin: 'bottom center' }}
                   >
                      <Card
                         card={card}
