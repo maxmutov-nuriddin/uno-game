@@ -45,7 +45,11 @@ const Lobby = ({ gameState, lobbyState }) => {
                      className="player-item-lobby"
                   >
                      <div className="player-avatar-lobby" style={{ background: p.avatarColor || 'rgba(255,255,255,0.05)' }}>
-                        {p.avatarIcon || p.name[0].toUpperCase()}
+                        {p.avatarIcon === 'uno' ? (
+                           <img className="avatar-icon-img" src="/unocards/uno-icon.png" alt="UNO" />
+                        ) : (
+                           p.avatarIcon || p.name[0].toUpperCase()
+                        )}
                      </div>
                      <span className="player-name-lobby">{p.name}</span>
                      <span className={`player-ready ${p.ready ? 'ready' : ''}`}>

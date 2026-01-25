@@ -265,7 +265,11 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
          <div className={`${slotClass} player-tile ${isActive ? 'active' : ''} ${options.compact ? 'compact' : ''} ${isMe ? 'me' : ''} ${cardCount === 1 ? 'hot-seat' : ''}`}>
             <div className="glass-chip">
                <div className="avatar-initials" style={{ background: player.avatarColor || 'rgba(0, 0, 0, 0.4)' }}>
-                  {player.avatarIcon || player.name[0].toUpperCase()}
+                  {player.avatarIcon === 'uno' ? (
+                     <img className="avatar-icon-img" src="/unocards/uno-icon.png" alt="UNO" />
+                  ) : (
+                     player.avatarIcon || player.name[0].toUpperCase()
+                  )}
                   <div className={`online-indicator ${player.isOnline && !player.isAway ? '' : 'offline'}`} />
                </div>
 
