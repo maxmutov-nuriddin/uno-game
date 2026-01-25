@@ -169,6 +169,9 @@ function Content() {
           winner={winner}
           gameSummary={gameSummary}
           onExit={() => {
+            if (socket) {
+              socket.emit('room:leave');
+            }
             resetToHome();
           }}
         />

@@ -46,6 +46,9 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  box-sizing: border-box;
 }
 
 /* Glass Panels */
@@ -403,14 +406,13 @@ body {
 .home-container,
 .lobby-container {
   width: min(560px, 94vw);
-  max-height: calc(100vh - 24px);
+  max-height: calc(100vh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
   scrollbar-gutter: stable;
-  padding-right: 6px;
 }
 
 .home-container::-webkit-scrollbar,
@@ -532,8 +534,9 @@ body {
   text-align: left;
   overflow-x: hidden;
   overflow-y: auto;
-  max-height: calc(100vh - 32px);
+  max-height: calc(100vh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   padding: clamp(20px, 4vh, 48px);
+  padding-top: calc(clamp(20px, 4vh, 48px) + env(safe-area-inset-top));
 }
 
 .home-backdrop {
@@ -1203,7 +1206,7 @@ body {
 
 .results-grid {
   margin: 0 auto 22px;
-  width: min(520px, 88vw);
+  width: min(100%, 88vw);
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
@@ -1247,11 +1250,7 @@ body {
   font-size: 0.9rem;
 }
 
-@media (max-width: 560px) {
-  .results-grid {
-    grid-template-columns: 1fr;
-  }
-}
+
 
 /* Center Interaction Objects */
 .deck-pill {
