@@ -23,12 +23,12 @@ const Lobby = ({ gameState, lobbyState }) => {
          className="lobby-container premium-box"
       >
          <div>
-            <div className="lobby-room-label">ROOM ID</div>
+            <div className="lobby-room-label">XONA ID</div>
             <h2 className="lobby-room-id">{roomId}</h2>
          </div>
 
          <div className="player-list-lobby">
-            <h3>PLAYERS ({players.length})</h3>
+            <h3>OʻYINCHILAR ({players.length})</h3>
             <ul style={{ listStyle: 'none', padding: 0 }}>
                {players.map((p, idx) => (
                   <motion.li
@@ -42,7 +42,7 @@ const Lobby = ({ gameState, lobbyState }) => {
                         {p.name[0].toUpperCase()}
                      </div>
                      <span className="player-name-lobby">{p.name}</span>
-                     {p.id === lobbyState.myId && <span className="player-badge-lobby">YOU</span>}
+                     {p.id === lobbyState.myId && <span className="player-badge-lobby">SIZ</span>}
                   </motion.li>
                ))}
             </ul>
@@ -52,15 +52,15 @@ const Lobby = ({ gameState, lobbyState }) => {
             {isAdmin ? (
                <div className="form-row">
                   <button className="btn-glass btn-primary" onClick={handleStart}>
-                     START GAME
+                     OʻYINNI BOSHLASH
                   </button>
                   <button className="btn-glass btn-secondary" onClick={handleCloseRoom}>
-                     CLOSE ROOM
+                     XONANI YOPISH
                   </button>
                </div>
             ) : (
                <div style={{ padding: '20px', opacity: 0.5, fontStyle: 'italic', fontSize: '0.9rem', letterSpacing: '1px' }}>
-                  WAITING FOR HOST...
+                  HOSTNI KUTMOQDA...
                </div>
             )}
          </div>

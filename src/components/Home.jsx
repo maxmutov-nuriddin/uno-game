@@ -59,7 +59,7 @@ const Home = () => {
                   />
                </div>
                <div className="input-group" style={{ margin: '20px 0' }}>
-                  <label>START CARDS: {startCards}</label>
+                  <label>BOSHLANGʻICH KARTALAR: {startCards}</label>
                   <input
                      type="range" min="5" max="10"
                      style={{ width: '100%', accentColor: 'var(--primary)' }}
@@ -67,9 +67,19 @@ const Home = () => {
                      onChange={e => setStartCards(e.target.value)}
                   />
                </div>
+               <div className="input-group" style={{ margin: '20px 0' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                     <input
+                        type="checkbox"
+                        checked={autoDrawEnabled}
+                        onChange={e => setAutoDrawEnabled(e.target.checked)}
+                     />
+                     AVTO TORTISH
+                  </label>
+               </div>
                <div className="form-row">
-                  <button className="btn-glass btn-primary" onClick={handleCreate}>START GAME</button>
-                  <button className="btn-glass btn-secondary" onClick={() => setMode('menu')}>BACK</button>
+                  <button className="btn-glass btn-primary" onClick={handleCreate}>OʻYINNI BOSHLASH</button>
+                  <button className="btn-glass btn-secondary" onClick={() => setMode('menu')}>ORTGA</button>
                </div>
             </motion.div>
          )}
@@ -86,7 +96,7 @@ const Home = () => {
                   />
                </div>
                <div className="input-group" style={{ margin: '20px 0' }}>
-                  <label>ROOM ID</label>
+                  <label>XONA ID</label>
                   <input
                      type="text"
                      inputMode="numeric"
@@ -97,8 +107,8 @@ const Home = () => {
                   />
                </div>
                <div className="form-row">
-                  <button className="btn-glass btn-primary" onClick={handleJoin}>JOIN ROOM</button>
-                  <button className="btn-glass btn-secondary" onClick={() => setMode('menu')}>BACK</button>
+                  <button className="btn-glass btn-primary" onClick={handleJoin}>XONAGA KIRISH</button>
+                  <button className="btn-glass btn-secondary" onClick={() => setMode('menu')}>ORTGA</button>
                </div>
             </motion.div>
          )}

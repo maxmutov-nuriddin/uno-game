@@ -127,7 +127,7 @@ function Content() {
     };
   }, [socket]);
 
-  if (isRestoring) return <div className="loading-screen glass-panel">Loading...</div>;
+  if (isRestoring) return <div className="loading-screen glass-panel">Yuklanmoqda...</div>;
 
   return (
     <>

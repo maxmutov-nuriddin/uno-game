@@ -48,22 +48,16 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
 
    const onPlaySelected = () => {
       if (!isMyTurn || selectedIds.length === 0) return;
-      const selectedCards = selectedIds
-         .map(id => myHand.find(card => card.id === id))
-         .filter(Boolean);
-      const hasPlus4 = selectedCards.some(card => card.type === 'plus4');
+      const selectedCard = myHand.find(card => card.id === selectedIds[0]);
+      if (!selectedCard) return;
 
-      if (hasPlus4) {
-         setPendingCardIds(selectedIds);
+      if (selectedCard.type === 'plus4') {
+         setPendingCardIds([selectedCard.id]);
          setModalOpen(true);
          return;
       }
 
-      if (selectedIds.length === 1) {
-         socket.emit('game:play', { cardId: selectedIds[0], chosenColor: null });
-      } else {
-         socket.emit('game:play', { cardIds: selectedIds });
-      }
+      socket.emit('game:play', { cardId: selectedCard.id, chosenColor: null });
       clearSelection();
    };
 
@@ -85,51 +79,19 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
       }
 
       if (selectedIds.includes(card.id)) {
-         setSelectedIds(prev => prev.filter(id => id !== card.id));
+         setSelectedIds([]);
          return;
       }
 
-      const first = myHand.find(c => c.id === selectedIds[0]);
-      if (!first) return;
-
-      // Allow number stacking
-      if (first.type === 'number' && card.type === 'number' && card.value === first.value) {
-         setSelectedIds(prev => [...prev, card.id]);
-         return;
-      }
-
-      // Allow +2 stacking
-      if (first.type === 'plus2' && card.type === 'plus2') {
-         setSelectedIds(prev => [...prev, card.id]);
-         return;
-      }
-
-      // Allow +4 stacking
-      if (first.type === 'plus4' && card.type === 'plus4') {
-         setSelectedIds(prev => [...prev, card.id]);
-         return;
-      }
-
-      // Allow skip stacking
-      if (first.type === 'skip' && card.type === 'skip') {
-         setSelectedIds(prev => [...prev, card.id]);
-         return;
-      }
-
-      // Allow reverse stacking
-      if (first.type === 'reverse' && card.type === 'reverse') {
-         setSelectedIds(prev => [...prev, card.id]);
-         return;
-      }
-
-      return;
+      if (!canPlayCard(card)) return;
+      setSelectedIds([card.id]);
    };
 
    const canPlayCard = (card) => {
       if (!isMyTurn) return false;
       if (!activeCard) return true;
       if (pendingDrawCount > 0 && pendingDrawPlayerId === myId) {
-         return card.type === 'plus2' || card.type === 'plus4';
+         return card.type === 'plus4' || (card.type === 'plus2' && (activeCard?.type === 'plus2' || card.color === currentColor));
       }
       if (card.type === 'wild' || card.type === 'plus4') return true;
       if (card.color === currentColor) return true;
@@ -295,7 +257,7 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
       <div className="game-table">
          {turnNotice && (
             <div className="turn-toast">
-               Ход игрока: {turnNotice}
+               Navbat: {turnNotice}
             </div>
          )}
          {/* Corner Seating */}
@@ -337,7 +299,7 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
                }}
             >
                <Card card={null} size="small" />
-               <div style={{ textAlign: 'center', fontSize: '0.7rem', marginTop: '5px', opacity: 0.6 }}>DRAW</div>
+               <div style={{ textAlign: 'center', fontSize: '0.7rem', marginTop: '5px', opacity: 0.6 }}>KARTA OLISH</div>
             </motion.div>
 
             <div className="active-card-box" style={{ position: 'relative' }}>
@@ -393,7 +355,7 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
          {/* UI Actions */}
          <div className="table-controls">
             <button className="btn-pill btn-secondary" onClick={onExit}>
-               EXIT
+               CHIQISH
             </button>
          </div>
 
@@ -407,6 +369,9 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
                   isMyTurn={isMyTurn}
                   activeCard={activeCard}
                   currentColor={currentColor}
+                  pendingDrawCount={pendingDrawCount}
+                  pendingDrawPlayerId={pendingDrawPlayerId}
+                  myId={myId}
                />
             </div>
             {(isMyTurn && selectedIds.length > 0) || showUnoButton || showPassAfterDraw ? (
@@ -414,16 +379,16 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
                   {isMyTurn && selectedIds.length > 0 && (
                      <>
                         <button className="btn-pill btn-primary" onClick={onPlaySelected}>
-                           PLAY {selectedIds.length}
+                           QOʻYISH
                         </button>
                         <button className="btn-pill btn-secondary" onClick={clearSelection}>
-                           CLEAR
+                           TOZALASH
                         </button>
                      </>
                   )}
                   {showPassAfterDraw && (
                      <button className="btn-pill btn-secondary" onClick={() => socket.emit('game:pass')}>
-                        PASS (SKIP)
+                        OʻTKAZISH
                      </button>
                   )}
                   {showUnoButton && (
@@ -479,7 +444,7 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
                   <div className="premium-box" style={{ padding: '64px', textAlign: 'center' }}>
                      <h1 style={{ fontSize: '4rem', marginBottom: '16px' }}>🏆</h1>
                      <h2 style={{ fontSize: '2.5rem', marginBottom: '32px', fontWeight: 800 }}>{winner} G‘OLIB!</h2>
-                     <button className="btn-glass btn-primary" onClick={onExit}>EXIT</button>
+                     <button className="btn-glass btn-primary" onClick={onExit}>CHIQISH</button>
                   </div>
                </motion.div>
             )}
@@ -489,3 +454,4 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
 };
 
 export default Board;
+
