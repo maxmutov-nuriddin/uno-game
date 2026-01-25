@@ -181,7 +181,7 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
             <div className="glass-chip">
                <div className="avatar-initials">
                   {player.name[0].toUpperCase()}
-                  <div className={`online-indicator ${player.isOnline ? '' : 'offline'}`} />
+                  <div className={`online-indicator ${player.isOnline && !player.isAway ? '' : 'offline'}`} />
                </div>
 
                <div className="tile-meta">

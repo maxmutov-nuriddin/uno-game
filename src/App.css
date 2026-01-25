@@ -252,6 +252,23 @@ body {
   color: #fff;
 }
 
+.online-indicator {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #00e676;
+  border: 1px solid #111;
+  box-shadow: 0 0 4px rgba(0, 230, 118, 0.5);
+}
+
+.online-indicator.offline {
+  background: #ff1744;
+  box-shadow: 0 0 4px rgba(255, 23, 68, 0.5);
+}
+
 .tile-meta {
   display: flex;
   flex-direction: column;

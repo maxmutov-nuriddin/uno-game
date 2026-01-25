@@ -98,6 +98,23 @@ function Content() {
     };
   }, [socket]);
 
+  useEffect(() => {
+    if (!socket) return;
+    const updateVisibility = () => {
+      const isAway = document.hidden || !document.hasFocus();
+      socket.emit('player:visibility', { isAway });
+    };
+    updateVisibility();
+    document.addEventListener('visibilitychange', updateVisibility);
+    window.addEventListener('blur', updateVisibility);
+    window.addEventListener('focus', updateVisibility);
+    return () => {
+      document.removeEventListener('visibilitychange', updateVisibility);
+      window.removeEventListener('blur', updateVisibility);
+      window.removeEventListener('focus', updateVisibility);
+    };
+  }, [socket]);
+
   if (isRestoring) return <div className="loading-screen glass-panel">Loading...</div>;
 
   return (
