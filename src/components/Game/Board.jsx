@@ -27,6 +27,8 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
    const [unoFlashIds, setUnoFlashIds] = useState(new Set());
    const [isCoarsePointer, setIsCoarsePointer] = useState(false);
    const [turnNotice, setTurnNotice] = useState('');
+   const [reactions, setReactions] = useState(new Map());
+   const [rulesOpen, setRulesOpen] = useState(false);
 
    const isMyTurn = turnPlayerId === myId;
    const showPassAfterDraw = justDrewPlayablePlayerId === myId;
@@ -35,6 +37,7 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
    const lastAutoDrawTurn = useRef(null);
    const unoTimers = useRef(new Map());
    const turnNoticeTimer = useRef(null);
+   const reactionTimers = useRef(new Map());
    const opponents = players.filter(p => p.id !== myId);
    const mePlayer = players.find(p => p.id === myId);
 
@@ -91,7 +94,7 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
       if (!isMyTurn) return false;
       if (!activeCard) return true;
       if (pendingDrawCount > 0 && pendingDrawPlayerId === myId) {
-         return card.type === 'plus4' || (card.type === 'plus2' && (activeCard?.type === 'plus2' || card.color === currentColor));
+         return card.type === 'plus4' || card.type === 'plus2';
       }
       if (card.type === 'wild' || card.type === 'plus4') return true;
       if (card.color === currentColor) return true;
@@ -183,6 +186,38 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
    }, [socket]);
 
    useEffect(() => {
+      if (!socket) return;
+      const onReactionShow = ({ playerId, emoji }) => {
+         if (!playerId || !emoji) return;
+         setReactions(prev => {
+            const next = new Map(prev);
+            next.set(playerId, emoji);
+            return next;
+         });
+
+         if (reactionTimers.current.has(playerId)) {
+            clearTimeout(reactionTimers.current.get(playerId));
+         }
+         const timerId = setTimeout(() => {
+            setReactions(prev => {
+               const next = new Map(prev);
+               next.delete(playerId);
+               return next;
+            });
+            reactionTimers.current.delete(playerId);
+         }, 2000);
+         reactionTimers.current.set(playerId, timerId);
+      };
+
+      socket.on('reaction:show', onReactionShow);
+      return () => {
+         socket.off('reaction:show', onReactionShow);
+         reactionTimers.current.forEach(id => clearTimeout(id));
+         reactionTimers.current.clear();
+      };
+   }, [socket]);
+
+   useEffect(() => {
       if (!turnPlayerId) return;
       const player = players.find(p => p.id === turnPlayerId);
       if (!player) return;
@@ -247,6 +282,10 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
 
                {hasUnoPending(player.id) && (
                   <div className="uno-badge">UNO</div>
+               )}
+
+               {reactions.has(player.id) && (
+                  <div className="reaction-pop">{reactions.get(player.id)}</div>
                )}
             </div>
          </div>
@@ -357,6 +396,21 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
             <button className="btn-pill btn-secondary" onClick={onExit}>
                CHIQISH
             </button>
+            <button className="btn-pill btn-secondary" onClick={() => setRulesOpen(true)}>
+               QOIDALAR
+            </button>
+            <div className="reaction-bar">
+               {['🔥', '😂', '😎'].map(emoji => (
+                  <button
+                     key={emoji}
+                     className="reaction-btn"
+                     onClick={() => socket.emit('reaction:send', { emoji })}
+                     aria-label={`Reaction ${emoji}`}
+                  >
+                     {emoji}
+                  </button>
+               ))}
+            </div>
          </div>
 
          {/* HAND - Player 1 */}
@@ -432,6 +486,29 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
                         }}
                      >
                         BEKOR QILISH
+                     </button>
+                  </div>
+               </motion.div>
+            )}
+         </AnimatePresence>
+
+         <AnimatePresence>
+            {rulesOpen && (
+               <motion.div className="modal-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 5000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div className="premium-box rules-box">
+                     <h3 style={{ marginBottom: '20px' }}>QOIDALAR</h3>
+                     <ul className="rules-list">
+                        <li>Navbat kelgan o‘yinchi bitta karta tashlaydi.</li>
+                        <li>Mos karta bo‘lmasa bitta karta oladi.</li>
+                        <li>+2 yoki +4 tushsa, navbatdagi o‘yinchi +2/+4 qo‘yishi mumkin.</li>
+                        <li>Wild va +4 rang tanlaydi.</li>
+                        <li>1 karta qolganda UNO tugmasini bosing.</li>
+                     </ul>
+                     <button
+                        className="btn-glass btn-secondary"
+                        onClick={() => setRulesOpen(false)}
+                     >
+                        YOPISH
                      </button>
                   </div>
                </motion.div>
