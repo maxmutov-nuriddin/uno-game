@@ -17,7 +17,7 @@ const Home = () => {
 
    const handleJoin = () => {
       if (!nickname || !roomId) return;
-      socket.emit('room:join', { nickname, roomId: roomId.toUpperCase() });
+      socket.emit('room:join', { nickname, roomId });
    };
 
    return (
@@ -39,15 +39,6 @@ const Home = () => {
             <div className="home-orb" aria-hidden="true"></div>
          </div>
 
-         <div className="input-group">
-            <label>NICKNAME</label>
-            <input
-               type="text"
-               placeholder="Ismingiz..."
-               value={nickname}
-               onChange={e => setNickname(e.target.value)}
-            />
-         </div>
 
          {mode === 'menu' && (
             <div className="menu-buttons">
@@ -58,6 +49,15 @@ const Home = () => {
 
          {mode === 'create' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="sub-menu">
+               <div className="input-group">
+                  <label>NICKNAME</label>
+                  <input
+                     type="text"
+                     placeholder="Ismingiz..."
+                     value={nickname}
+                     onChange={e => setNickname(e.target.value)}
+                  />
+               </div>
                <div className="input-group" style={{ margin: '20px 0' }}>
                   <label>START CARDS: {startCards}</label>
                   <input
@@ -86,13 +86,24 @@ const Home = () => {
 
          {mode === 'join' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="sub-menu">
+               <div className="input-group">
+                  <label>NICKNAME</label>
+                  <input
+                     type="text"
+                     placeholder="Ismingiz..."
+                     value={nickname}
+                     onChange={e => setNickname(e.target.value)}
+                  />
+               </div>
                <div className="input-group" style={{ margin: '20px 0' }}>
                   <label>ROOM ID</label>
                   <input
                      type="text"
-                     placeholder="XONA KODI"
+                     inputMode="numeric"
+                     pattern="[0-9]*"
+                     placeholder="RAQAMLI ID"
                      value={roomId}
-                     onChange={e => setRoomId(e.target.value)}
+                     onChange={e => setRoomId(e.target.value.replace(/[^0-9]/g, ''))}
                   />
                </div>
                <div className="form-row">
@@ -107,3 +118,4 @@ const Home = () => {
 };
 
 export default Home;
+
