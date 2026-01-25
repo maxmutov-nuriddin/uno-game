@@ -22,7 +22,7 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
    } = gameState;
 
    const [modalOpen, setModalOpen] = useState(false);
-   const [pendingCardId, setPendingCardId] = useState(null);
+   const [pendingCardIds, setPendingCardIds] = useState([]);
    const [selectedIds, setSelectedIds] = useState([]);
    const [unoFlashIds, setUnoFlashIds] = useState(new Set());
 
@@ -45,6 +45,17 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
 
    const onPlaySelected = () => {
       if (!isMyTurn || selectedIds.length === 0) return;
+      const selectedCards = selectedIds
+         .map(id => myHand.find(card => card.id === id))
+         .filter(Boolean);
+      const hasPlus4 = selectedCards.some(card => card.type === 'plus4');
+
+      if (hasPlus4) {
+         setPendingCardIds(selectedIds);
+         setModalOpen(true);
+         return;
+      }
+
       if (selectedIds.length === 1) {
          socket.emit('game:play', { cardId: selectedIds[0], chosenColor: null });
       } else {
@@ -57,18 +68,10 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
       if (!isMyTurn) return;
       if (!card) return;
 
-      if (card.type === 'wild' || card.type === 'plus4') {
+      if (card.type === 'wild') {
          clearSelection();
-         setPendingCardId(card.id);
+         setPendingCardIds([card.id]);
          setModalOpen(true);
-         return;
-      }
-
-      if (card.type !== 'number') {
-         clearSelection();
-         if (canPlayCard(card)) {
-            socket.emit('game:play', { cardId: card.id, chosenColor: null });
-         }
          return;
       }
 
@@ -84,6 +87,7 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
       }
 
       const first = myHand.find(c => c.id === selectedIds[0]);
+      if (!first) return;
 
       // Allow number stacking
       if (first.type === 'number' && card.type === 'number' && card.value === first.value) {
@@ -97,12 +101,33 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
          return;
       }
 
+      // Allow +4 stacking
+      if (first.type === 'plus4' && card.type === 'plus4') {
+         setSelectedIds(prev => [...prev, card.id]);
+         return;
+      }
+
+      // Allow skip stacking
+      if (first.type === 'skip' && card.type === 'skip') {
+         setSelectedIds(prev => [...prev, card.id]);
+         return;
+      }
+
+      // Allow reverse stacking
+      if (first.type === 'reverse' && card.type === 'reverse') {
+         setSelectedIds(prev => [...prev, card.id]);
+         return;
+      }
+
       return;
    };
 
    const canPlayCard = (card) => {
       if (!isMyTurn) return false;
       if (!activeCard) return true;
+      if (pendingDrawCount > 0 && pendingDrawPlayerId === myId) {
+         return card.type === 'plus2' || card.type === 'plus4';
+      }
       if (card.type === 'wild' || card.type === 'plus4') return true;
       if (card.color === currentColor) return true;
       if (card.type === activeCard.type) {
@@ -380,7 +405,13 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
                            <button
                               key={c}
                               onClick={() => {
-                                 socket.emit('game:play', { cardId: pendingCardId, chosenColor: c });
+                                 if (pendingCardIds.length > 1) {
+                                    socket.emit('game:play', { cardIds: pendingCardIds, chosenColor: c });
+                                 } else {
+                                    socket.emit('game:play', { cardId: pendingCardIds[0], chosenColor: c });
+                                 }
+                                 clearSelection();
+                                 setPendingCardIds([]);
                                  setModalOpen(false);
                               }}
                               style={{ width: '80px', height: '80px', borderRadius: '50%', border: 'none', background: `var(--c-${c})`, boxShadow: `0 0 20px var(--c-${c})`, cursor: 'pointer' }}
@@ -391,7 +422,7 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
                         style={{ marginTop: '24px', width: '100%', padding: '12px', borderRadius: '12px', background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: 700 }}
                         onClick={() => {
                            setModalOpen(false);
-                           setPendingCardId(null);
+                           setPendingCardIds([]);
                         }}
                      >
                         BEKOR QILISH

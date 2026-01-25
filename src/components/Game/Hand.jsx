@@ -22,6 +22,20 @@ const Hand = ({ hand, onCardClick, selectedIds = [], isMyTurn, activeCard, curre
    const isPlayable = (card) => {
       if (!isMyTurn) return false;
       if (!activeCard) return true;
+      if (selectedIds.length > 0) {
+         const firstSelected = hand.find(c => c.id === selectedIds[0]);
+         if (firstSelected) {
+            if (firstSelected.type === 'number' && card.type === 'number' && card.value === firstSelected.value) {
+               return true;
+            }
+            if (
+               ['plus2', 'plus4', 'skip', 'reverse'].includes(firstSelected.type) &&
+               card.type === firstSelected.type
+            ) {
+               return true;
+            }
+         }
+      }
       if (card.type === 'wild' || card.type === 'plus4') return true;
       if (card.color === currentColor) return true;
       if (card.type === activeCard.type) {
