@@ -33,6 +33,7 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
    const [mobileEvents, setMobileEvents] = useState([]);
    const [rulesOpen, setRulesOpen] = useState(false);
    const [sentReaction, setSentReaction] = useState('');
+   const [reactionOpen, setReactionOpen] = useState(false);
 
    const isMyTurn = turnPlayerId === myId;
    const showPassAfterDraw = justDrewPlayablePlayerId === myId;
@@ -45,8 +46,10 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
    const sentReactionTimer = useRef(null);
    const lastNoticeActionId = useRef(0);
    const mobileEventTimers = useRef(new Map());
+   const reactionPanelRef = useRef(null);
    const opponents = players.filter(p => p.id !== myId);
    const mePlayer = players.find(p => p.id === myId);
+   const reactionEmojis = ['\ud83d\udd25', '\ud83d\ude02', '\ud83d\ude0e'];
 
    const formatDuration = (seconds = 0) => {
       const mins = Math.floor(seconds / 60);
@@ -191,6 +194,18 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
          mobileEventTimers.current.clear();
       };
    }, []);
+
+   useEffect(() => {
+      if (!reactionOpen) return;
+      const onDocClick = (event) => {
+         if (!reactionPanelRef.current) return;
+         if (!reactionPanelRef.current.contains(event.target)) {
+            setReactionOpen(false);
+         }
+      };
+      document.addEventListener('click', onDocClick);
+      return () => document.removeEventListener('click', onDocClick);
+   }, [reactionOpen]);
 
    useEffect(() => {
       if (!socket) return;
@@ -476,28 +491,43 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
             <button className="btn-pill btn-secondary" onClick={() => setRulesOpen(true)}>
                QOIDALAR
             </button>
-            <div className="reaction-bar">
+            <div className="reaction-bar" ref={reactionPanelRef}>
                {sentReaction && <div className="reaction-sent">Yuborildi {sentReaction}</div>}
-               {['🔥', '😂', '😎'].map(emoji => (
-                  <button
-                     key={emoji}
-                     className="reaction-btn"
-                     onClick={() => {
-                        socket.emit('reaction:send', { emoji });
-                        setSentReaction(emoji);
-                        if (sentReactionTimer.current) {
-                           clearTimeout(sentReactionTimer.current);
-                        }
-                        sentReactionTimer.current = setTimeout(() => {
-                           setSentReaction('');
-                           sentReactionTimer.current = null;
-                        }, 1200);
-                     }}
-                     aria-label={`Reaction ${emoji}`}
-                  >
-                     {emoji}
-                  </button>
-               ))}
+               <button
+                  className="reaction-btn reaction-trigger"
+                  onClick={(event) => {
+                     event.stopPropagation();
+                     setReactionOpen(prev => !prev);
+                  }}
+                  aria-label="Stickerlar"
+               >
+                  {'\ud83d\ude42'}
+               </button>
+               {reactionOpen && (
+                  <div className="reaction-panel" onClick={event => event.stopPropagation()}>
+                     {reactionEmojis.map(emoji => (
+                        <button
+                           key={emoji}
+                           className="reaction-btn"
+                           onClick={() => {
+                              socket.emit('reaction:send', { emoji });
+                              setSentReaction(emoji);
+                              setReactionOpen(false);
+                              if (sentReactionTimer.current) {
+                                 clearTimeout(sentReactionTimer.current);
+                              }
+                              sentReactionTimer.current = setTimeout(() => {
+                                 setSentReaction('');
+                                 sentReactionTimer.current = null;
+                              }, 1200);
+                           }}
+                           aria-label={`Reaction ${emoji}`}
+                        >
+                           {emoji}
+                        </button>
+                     ))}
+                  </div>
+               )}
             </div>
          </div>
 

@@ -264,6 +264,25 @@ body {
   transform: translateY(-1px);
 }
 
+.reaction-trigger {
+  font-size: 0.95rem;
+}
+
+.reaction-panel {
+  position: absolute;
+  top: 42px;
+  right: 0;
+  display: flex;
+  gap: 6px;
+  padding: 8px;
+  border-radius: 16px;
+  background: rgba(10, 10, 10, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(10px);
+  z-index: 5;
+}
+
 .reaction-pop {
   position: absolute;
   top: -18px;
