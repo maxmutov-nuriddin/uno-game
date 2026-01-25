@@ -273,7 +273,7 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
                      initial={{ scale: 0.5, opacity: 0, rotate: -20, y: -50 }}
                      animate={{ scale: 1.1, opacity: 1, rotate: 0, y: 0 }}
                      exit={{ scale: 0.5, opacity: 0, x: -100 }}
-                     transition={{ type: 'spring', damping: 12 }}
+                     transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                   >
                      <Card card={activeCard} size="large" />
                   </motion.div>

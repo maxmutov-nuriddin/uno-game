@@ -72,8 +72,9 @@ const Hand = ({ hand, onCardClick, selectedIds = [], isMyTurn, activeCard, curre
                         x: layout.x,
                         scale: 1
                      }}
+                     transition={{ type: 'spring', stiffness: 400, damping: 25, mass: 0.8 }}
                      exit={{ opacity: 0, y: 50, scale: 0 }}
-                     whileHover={playable && !isCoarsePointer ? { y: layout.y + selectedLift - 40, scale: 1.08, zIndex: 1000 } : {}}
+                     whileHover={playable && !isCoarsePointer ? { y: layout.y + selectedLift - 40, scale: 1.08, zIndex: 1000, transition: { duration: 0.15 } } : {}}
                      whileTap={playable ? (isCoarsePointer ? { y: layout.y + selectedLift - 18, scale: 1.04, zIndex: 1000 } : { scale: 0.98 }) : {}}
                      className={`fanned-card ${!playable && isMyTurn ? 'dimmed' : ''} ${isSelected ? 'selected' : ''}`}
                      style={{ position: 'absolute', zIndex: layout.z, transformOrigin: 'bottom center' }}
