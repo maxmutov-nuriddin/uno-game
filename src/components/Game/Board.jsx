@@ -291,11 +291,6 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
                   PASS
                </button>
             )}
-            {showUnoButton && (
-               <button className="btn-pill uno-call-btn" onClick={() => socket.emit('game:uno')}>
-                  UNO!
-               </button>
-            )}
          </div>
 
          {/* HAND - Player 1 */}
@@ -310,16 +305,25 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
                   currentColor={currentColor}
                />
             </div>
-            {isMyTurn && selectedIds.length > 0 && (
+            {(isMyTurn && selectedIds.length > 0) || showUnoButton ? (
                <div className="hand-actions">
-                  <button className="btn-pill btn-primary" onClick={onPlaySelected}>
-                     PLAY {selectedIds.length}
-                  </button>
-                  <button className="btn-pill btn-secondary" onClick={clearSelection}>
-                     CLEAR
-                  </button>
+                  {isMyTurn && selectedIds.length > 0 && (
+                     <>
+                        <button className="btn-pill btn-primary" onClick={onPlaySelected}>
+                           PLAY {selectedIds.length}
+                        </button>
+                        <button className="btn-pill btn-secondary" onClick={clearSelection}>
+                           CLEAR
+                        </button>
+                     </>
+                  )}
+                  {showUnoButton && (
+                     <button className="btn-pill uno-call-btn" onClick={() => socket.emit('game:uno')}>
+                        UNO!
+                     </button>
+                  )}
                </div>
-            )}
+            ) : null}
          </div>
 
          {/* Color Picker & Winner Modals are same as before, but with better glass styling */}
