@@ -64,19 +64,19 @@ const Lobby = ({ gameState, lobbyState }) => {
          <div style={{ marginTop: '16px' }}>
             {isAdmin ? (
                <div className="form-row">
+                  <button className={`btn-glass btn-secondary ${mePlayer?.ready ? 'btn-ready' : ''}`} onClick={handleReadyToggle}>
+                     {mePlayer?.ready ? 'TAYYOR' : 'TAYYORMAN'}
+                  </button>
                   <button className="btn-glass btn-primary" onClick={handleStart} disabled={!allReady}>
                      OʻYINNI BOSHLASH
                   </button>
                   <button className="btn-glass btn-secondary" onClick={handleCloseRoom}>
                      XONANI YOPISH
                   </button>
-                  <button className="btn-glass btn-secondary" onClick={handleReadyToggle}>
-                     {mePlayer?.ready ? 'TAYYOR' : 'TAYYORMAN'}
-                  </button>
                </div>
             ) : (
                <div style={{ display: 'grid', gap: '12px' }}>
-                  <button className="btn-glass btn-secondary" onClick={handleReadyToggle}>
+                  <button className={`btn-glass btn-secondary ${mePlayer?.ready ? '' : 'btn-ready'}`} onClick={handleReadyToggle}>
                      {mePlayer?.ready ? 'TAYYOR' : 'TAYYORMAN'}
                   </button>
                   <div style={{ padding: '10px', opacity: 0.6, fontStyle: 'italic', fontSize: '0.85rem', letterSpacing: '1px' }}>

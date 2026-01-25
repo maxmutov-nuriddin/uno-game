@@ -958,6 +958,18 @@ body {
   border-color: #fff;
 }
 
+.btn-glass.btn-ready {
+  border-color: rgba(0, 230, 118, 0.8);
+  color: #00e676;
+  background: rgba(0, 230, 118, 0.08);
+}
+
+.btn-glass.btn-ready:hover {
+  background: rgba(0, 230, 118, 0.14);
+  border-color: rgba(0, 230, 118, 1);
+  box-shadow: 0 0 18px rgba(0, 230, 118, 0.25);
+}
+
 .btn-glass:disabled {
   opacity: 0.45;
   cursor: not-allowed;
