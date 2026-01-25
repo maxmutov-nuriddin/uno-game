@@ -33,7 +33,10 @@ const Hand = ({
       if (!isMyTurn) return false;
       if (!activeCard) return true;
       if (pendingDrawCount > 0 && pendingDrawPlayerId === myId) {
-         return card.type === 'plus4' || card.type === 'plus2';
+         if (card.type === 'plus4') return true;
+         if (card.type !== 'plus2') return false;
+         if (activeCard?.type === 'plus2') return true;
+         return card.color === currentColor;
       }
       if (card.type === 'wild' || card.type === 'plus4') return true;
       if (card.color === currentColor) return true;

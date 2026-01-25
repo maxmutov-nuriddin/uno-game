@@ -6,6 +6,8 @@ const Lobby = ({ gameState, lobbyState }) => {
    const socket = useSocket();
    const { players } = gameState || { players: [] };
    const { roomId, isAdmin } = lobbyState;
+   const allReady = players.length >= 2 && players.every(p => p.ready);
+   const mePlayer = players.find(p => p.id === lobbyState.myId);
 
    const handleStart = () => {
       socket.emit('game:start');
@@ -13,6 +15,10 @@ const Lobby = ({ gameState, lobbyState }) => {
 
    const handleCloseRoom = () => {
       socket.emit('room:close');
+   };
+
+   const handleReadyToggle = () => {
+      socket.emit('player:ready', { isReady: !mePlayer?.ready });
    };
 
    return (
@@ -38,10 +44,13 @@ const Lobby = ({ gameState, lobbyState }) => {
                      transition={{ delay: idx * 0.1 }}
                      className="player-item-lobby"
                   >
-                     <div className="player-avatar-lobby">
-                        {p.name[0].toUpperCase()}
+                     <div className="player-avatar-lobby" style={{ background: p.avatarColor || 'rgba(255,255,255,0.05)' }}>
+                        {p.avatarIcon || p.name[0].toUpperCase()}
                      </div>
                      <span className="player-name-lobby">{p.name}</span>
+                     <span className={`player-ready ${p.ready ? 'ready' : ''}`}>
+                        {p.ready ? 'TAYYOR' : 'KUTYAPTI'}
+                     </span>
                      {p.id === lobbyState.myId && <span className="player-badge-lobby">SIZ</span>}
                   </motion.li>
                ))}
@@ -51,16 +60,24 @@ const Lobby = ({ gameState, lobbyState }) => {
          <div style={{ marginTop: '16px' }}>
             {isAdmin ? (
                <div className="form-row">
-                  <button className="btn-glass btn-primary" onClick={handleStart}>
+                  <button className="btn-glass btn-primary" onClick={handleStart} disabled={!allReady}>
                      OʻYINNI BOSHLASH
                   </button>
                   <button className="btn-glass btn-secondary" onClick={handleCloseRoom}>
                      XONANI YOPISH
                   </button>
+                  <button className="btn-glass btn-secondary" onClick={handleReadyToggle}>
+                     {mePlayer?.ready ? 'TAYYOR' : 'TAYYORMAN'}
+                  </button>
                </div>
             ) : (
-               <div style={{ padding: '20px', opacity: 0.5, fontStyle: 'italic', fontSize: '0.9rem', letterSpacing: '1px' }}>
-                  HOSTNI KUTMOQDA...
+               <div style={{ display: 'grid', gap: '12px' }}>
+                  <button className="btn-glass btn-secondary" onClick={handleReadyToggle}>
+                     {mePlayer?.ready ? 'TAYYOR' : 'TAYYORMAN'}
+                  </button>
+                  <div style={{ padding: '10px', opacity: 0.6, fontStyle: 'italic', fontSize: '0.85rem', letterSpacing: '1px' }}>
+                     HOSTNI KUTMOQDA...
+                  </div>
                </div>
             )}
          </div>

@@ -105,7 +105,10 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
       if (!isMyTurn) return false;
       if (!activeCard) return true;
       if (pendingDrawCount > 0 && pendingDrawPlayerId === myId) {
-         return card.type === 'plus4' || card.type === 'plus2';
+         if (card.type === 'plus4') return true;
+         if (card.type !== 'plus2') return false;
+         if (activeCard?.type === 'plus2') return true;
+         return card.color === currentColor;
       }
       if (card.type === 'wild' || card.type === 'plus4') return true;
       if (card.color === currentColor) return true;
@@ -259,10 +262,10 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
       const isMe = options.isMe;
       const cardCount = isMe ? myHand.length : player.cardCount;
       return (
-         <div className={`${slotClass} player-tile ${isActive ? 'active' : ''} ${options.compact ? 'compact' : ''} ${isMe ? 'me' : ''}`}>
+         <div className={`${slotClass} player-tile ${isActive ? 'active' : ''} ${options.compact ? 'compact' : ''} ${isMe ? 'me' : ''} ${cardCount === 1 ? 'hot-seat' : ''}`}>
             <div className="glass-chip">
-               <div className="avatar-initials">
-                  {player.name[0].toUpperCase()}
+               <div className="avatar-initials" style={{ background: player.avatarColor || 'rgba(0, 0, 0, 0.4)' }}>
+                  {player.avatarIcon || player.name[0].toUpperCase()}
                   <div className={`online-indicator ${player.isOnline && !player.isAway ? '' : 'offline'}`} />
                </div>
 
@@ -307,7 +310,7 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
    };
 
    return (
-      <div className="game-table">
+      <div className="game-table" style={{ '--theme-color': currentColor ? `var(--c-${currentColor})` : 'rgba(255,255,255,0.12)' }}>
          {turnNotice && (
             <div className="turn-toast">
                Navbat: {turnNotice}
@@ -327,7 +330,7 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
          </div>
 
          {/* 🟢 Center Focal Point */}
-         <div className="table-center">
+         <div className={`table-center ${pendingDrawCount > 0 ? 'table-mood-alert' : ''}`}>
             <div className="center-glow" style={{ background: currentColor || 'rgba(255,255,255,0.1)' }}></div>
 
             <div className="direction-ring">
