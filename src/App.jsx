@@ -25,6 +25,16 @@ function Content() {
     }, 3000);
   };
 
+  const resetToHome = (message) => {
+    localStorage.removeItem('uno_session');
+    setView('home');
+    setGameState(null);
+    setMyHand([]);
+    setWinner(null);
+    setLobbyState({ roomId: null, players: [], isAdmin: false, myId: null });
+    if (message) addToast('error', message);
+  };
+
   useEffect(() => {
     if (!socket) return;
 
@@ -82,6 +92,7 @@ function Content() {
     socket.on('handUpdate', (hand) => setMyHand(hand));
 
     socket.on('gameFinished', ({ winner }) => setWinner(winner));
+    socket.on('room:closed', () => resetToHome('Xona yopildi'));
 
     // Toast Handlers
     socket.on('toast', ({ type, message }) => addToast(type, message));
@@ -93,6 +104,7 @@ function Content() {
       socket.off('stateUpdate');
       socket.off('handUpdate');
       socket.off('gameFinished');
+      socket.off('room:closed');
       socket.off('toast');
       socket.off('error:msg');
     };
@@ -147,8 +159,7 @@ function Content() {
           myId={lobbyState.myId}
           winner={winner}
           onExit={() => {
-            localStorage.removeItem('uno_session');
-            window.location.reload();
+            resetToHome();
           }}
         />
       )}

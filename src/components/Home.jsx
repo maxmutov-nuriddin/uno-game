@@ -67,16 +67,6 @@ const Home = () => {
                      onChange={e => setStartCards(e.target.value)}
                   />
                </div>
-               <div className="input-group" style={{ margin: '20px 0' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                     <input
-                        type="checkbox"
-                        checked={autoDrawEnabled}
-                        onChange={e => setAutoDrawEnabled(e.target.checked)}
-                     />
-                     AUTO DRAW (NO MOVE / +2 +4)
-                  </label>
-               </div>
                <div className="form-row">
                   <button className="btn-glass btn-primary" onClick={handleCreate}>START GAME</button>
                   <button className="btn-glass btn-secondary" onClick={() => setMode('menu')}>BACK</button>

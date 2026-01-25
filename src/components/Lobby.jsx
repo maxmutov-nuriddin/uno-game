@@ -11,6 +11,10 @@ const Lobby = ({ gameState, lobbyState }) => {
       socket.emit('game:start');
    };
 
+   const handleCloseRoom = () => {
+      socket.emit('room:close');
+   };
+
    return (
       <motion.div
          initial={{ opacity: 0, scale: 0.9, y: 30 }}
@@ -46,9 +50,14 @@ const Lobby = ({ gameState, lobbyState }) => {
 
          <div style={{ marginTop: '16px' }}>
             {isAdmin ? (
-               <button className="btn-glass btn-primary" onClick={handleStart}>
-                  START GAME
-               </button>
+               <div className="form-row">
+                  <button className="btn-glass btn-primary" onClick={handleStart}>
+                     START GAME
+                  </button>
+                  <button className="btn-glass btn-secondary" onClick={handleCloseRoom}>
+                     CLOSE ROOM
+                  </button>
+               </div>
             ) : (
                <div style={{ padding: '20px', opacity: 0.5, fontStyle: 'italic', fontSize: '0.9rem', letterSpacing: '1px' }}>
                   WAITING FOR HOST...
