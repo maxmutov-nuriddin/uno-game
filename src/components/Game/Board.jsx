@@ -185,8 +185,8 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
                </div>
                <div className="opp-meta">
                   <div className="opp-name" style={{ fontSize: '0.8rem', fontWeight: 600 }}>{player.name}</div>
-                  <div className="opp-cards">
-                     {Array.from({ length: Math.min(cardCount, 3) }).map((_, index) => (
+                  <div className="opp-cards" style={{ '--count': cardCount }}>
+                     {Array.from({ length: cardCount }).map((_, index) => (
                         <img
                            key={index}
                            className="opp-card"
