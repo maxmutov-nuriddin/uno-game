@@ -223,6 +223,21 @@ body {
   display: flex;
   gap: 6px;
   margin-left: 6px;
+  position: relative;
+}
+
+.reaction-sent {
+  position: absolute;
+  top: -22px;
+  right: 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 0.75rem;
+  color: #fff;
+  pointer-events: none;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
 }
 
 .reaction-btn {
@@ -897,19 +912,20 @@ body {
 
 .turn-toast {
   position: absolute;
-  top: 18px;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   padding: 8px 18px;
   border-radius: 999px;
-  background: rgba(10, 10, 10, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(10, 10, 10, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   color: #fff;
   font-weight: 700;
   letter-spacing: 0.3px;
   z-index: 3000;
   pointer-events: none;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(6px);
 }
 
 .rules-box {
@@ -925,6 +941,58 @@ body {
   font-size: 0.95rem;
   line-height: 1.5;
   color: rgba(255, 255, 255, 0.9);
+}
+
+.results-grid {
+  margin: 0 auto 22px;
+  width: min(520px, 88vw);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  text-align: left;
+}
+
+.results-item {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: grid;
+  gap: 6px;
+}
+
+.results-item span {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  letter-spacing: 0.6px;
+}
+
+.results-item strong {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.results-item.results-full {
+  grid-column: 1 / -1;
+}
+
+.results-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.results-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 560px) {
+  .results-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Center Interaction Objects */
@@ -983,7 +1051,7 @@ body {
 /* 📱 Mobile Overrides */
 @media (max-width: 768px) {
   .game-table {
-    padding: 20px 16px 140px;
+    padding: calc(20px + env(safe-area-inset-top)) 16px 140px;
   }
 
   .game-table::before {
@@ -1004,7 +1072,7 @@ body {
   }
 
   .table-controls {
-    top: 10px;
+    top: calc(10px + env(safe-area-inset-top));
   }
 
   .opponents-mobile-strip {

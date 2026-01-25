@@ -15,6 +15,7 @@ function Content() {
   const [lobbyState, setLobbyState] = useState({ roomId: null, players: [], isAdmin: false, myId: null });
   const [toasts, setToasts] = useState([]); // { id, type, message }
   const [winner, setWinner] = useState(null);
+  const [gameSummary, setGameSummary] = useState(null);
   const [isRestoring, setIsRestoring] = useState(true);
 
   const addToast = (type, message) => {
@@ -31,6 +32,7 @@ function Content() {
     setGameState(null);
     setMyHand([]);
     setWinner(null);
+    setGameSummary(null);
     setLobbyState({ roomId: null, players: [], isAdmin: false, myId: null });
     if (message) addToast('error', message);
   };
@@ -87,11 +89,18 @@ function Content() {
         setMyHand(data.me.hand);
         setLobbyState(prev => ({ ...prev, myId: data.me.id }));
       }
+
+      if (data.gameSummary) {
+        setGameSummary(data.gameSummary);
+      }
     });
 
     socket.on('handUpdate', (hand) => setMyHand(hand));
 
-    socket.on('gameFinished', ({ winner }) => setWinner(winner));
+    socket.on('gameFinished', ({ winner, summary }) => {
+      setWinner(winner);
+      if (summary) setGameSummary(summary);
+    });
     socket.on('room:closed', () => resetToHome('Xona yopildi'));
 
     // Toast Handlers
@@ -158,6 +167,7 @@ function Content() {
           myHand={myHand}
           myId={lobbyState.myId}
           winner={winner}
+          gameSummary={gameSummary}
           onExit={() => {
             resetToHome();
           }}

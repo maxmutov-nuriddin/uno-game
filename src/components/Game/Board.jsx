@@ -4,7 +4,7 @@ import Hand from './Hand';
 import Card from './Card';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const Board = ({ gameState, myHand, myId, winner, onExit }) => {
+const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
    const socket = useSocket();
    const {
       roomId,
@@ -19,6 +19,8 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
       pendingDrawPlayerId,
       pendingUnoIds,
       justDrewPlayablePlayerId,
+      lastActionId,
+      lastActionType,
    } = gameState;
 
    const [modalOpen, setModalOpen] = useState(false);
@@ -29,6 +31,7 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
    const [turnNotice, setTurnNotice] = useState('');
    const [reactions, setReactions] = useState(new Map());
    const [rulesOpen, setRulesOpen] = useState(false);
+   const [sentReaction, setSentReaction] = useState('');
 
    const isMyTurn = turnPlayerId === myId;
    const showPassAfterDraw = justDrewPlayablePlayerId === myId;
@@ -38,8 +41,16 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
    const unoTimers = useRef(new Map());
    const turnNoticeTimer = useRef(null);
    const reactionTimers = useRef(new Map());
+   const sentReactionTimer = useRef(null);
+   const lastNoticeActionId = useRef(0);
    const opponents = players.filter(p => p.id !== myId);
    const mePlayer = players.find(p => p.id === myId);
+
+   const formatDuration = (seconds = 0) => {
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+   };
 
    const cornerSlots = [
       { slotClass: 'seat-top-left', player: opponents[0] },
@@ -218,10 +229,13 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
    }, [socket]);
 
    useEffect(() => {
+      if (!lastActionId || lastActionId === lastNoticeActionId.current) return;
+      if (lastActionType !== 'play' && lastActionType !== 'pass') return;
       if (!turnPlayerId) return;
       const player = players.find(p => p.id === turnPlayerId);
       if (!player) return;
 
+      lastNoticeActionId.current = lastActionId;
       setTurnNotice(player.name);
       if (turnNoticeTimer.current) {
          clearTimeout(turnNoticeTimer.current);
@@ -237,7 +251,7 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
             turnNoticeTimer.current = null;
          }
       };
-   }, [turnPlayerId, players]);
+   }, [lastActionId, lastActionType, turnPlayerId, players]);
 
    const renderPlayerTile = (player, slotClass, options = {}) => {
       if (!player) return null;
@@ -400,11 +414,22 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
                QOIDALAR
             </button>
             <div className="reaction-bar">
+               {sentReaction && <div className="reaction-sent">Yuborildi {sentReaction}</div>}
                {['🔥', '😂', '😎'].map(emoji => (
                   <button
                      key={emoji}
                      className="reaction-btn"
-                     onClick={() => socket.emit('reaction:send', { emoji })}
+                     onClick={() => {
+                        socket.emit('reaction:send', { emoji });
+                        setSentReaction(emoji);
+                        if (sentReactionTimer.current) {
+                           clearTimeout(sentReactionTimer.current);
+                        }
+                        sentReactionTimer.current = setTimeout(() => {
+                           setSentReaction('');
+                           sentReactionTimer.current = null;
+                        }, 1200);
+                     }}
                      aria-label={`Reaction ${emoji}`}
                   >
                      {emoji}
@@ -518,9 +543,40 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
          <AnimatePresence>
             {winner && (
                <motion.div className="modal-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(30px)', zIndex: 6000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <div className="premium-box" style={{ padding: '64px', textAlign: 'center' }}>
+                  <div className="premium-box" style={{ padding: '48px', textAlign: 'center' }}>
                      <h1 style={{ fontSize: '4rem', marginBottom: '16px' }}>🏆</h1>
-                     <h2 style={{ fontSize: '2.5rem', marginBottom: '32px', fontWeight: 800 }}>{winner} G‘OLIB!</h2>
+                     <h2 style={{ fontSize: '2.2rem', marginBottom: '20px', fontWeight: 800 }}>{winner} G‘OLIB!</h2>
+                     {gameSummary && (
+                        <div className="results-grid">
+                           <div className="results-item">
+                              <span>O‘yin davomiyligi</span>
+                              <strong>{formatDuration(gameSummary.durationSeconds)}</strong>
+                           </div>
+                           <div className="results-item">
+                              <span>Umumiy yurishlar</span>
+                              <strong>{gameSummary.totalMoves}</strong>
+                           </div>
+                           <div className="results-item results-full">
+                              <span>Eng ko‘p karta olgan</span>
+                              <strong>
+                                 {gameSummary.mostDrawnPlayers?.length
+                                    ? `${gameSummary.mostDrawnPlayers.join(', ')} (${gameSummary.mostDrawnCount})`
+                                    : '-'}
+                              </strong>
+                           </div>
+                           <div className="results-item results-full">
+                              <span>Yakuniy kartalar</span>
+                              <div className="results-list">
+                                 {gameSummary.players?.map(player => (
+                                    <div key={player.id} className="results-row">
+                                       <span>{player.name}</span>
+                                       <span>{player.cardCount} ta</span>
+                                    </div>
+                                 ))}
+                              </div>
+                           </div>
+                        </div>
+                     )}
                      <button className="btn-glass btn-primary" onClick={onExit}>CHIQISH</button>
                   </div>
                </motion.div>
