@@ -8,6 +8,7 @@ const Lobby = ({ gameState, lobbyState }) => {
    const { roomId, isAdmin } = lobbyState;
    const allReady = players.length >= 2 && players.every(p => p.ready);
    const mePlayer = players.find(p => p.id === lobbyState.myId);
+   const adminReady = isAdmin && !!mePlayer?.ready;
 
    const handleStart = () => {
       socket.emit('game:start');
@@ -64,15 +65,20 @@ const Lobby = ({ gameState, lobbyState }) => {
          <div style={{ marginTop: '16px' }}>
             {isAdmin ? (
                <div className="form-row">
-                  <button className={`btn-glass btn-secondary ${mePlayer?.ready ? 'btn-ready' : ''}`} onClick={handleReadyToggle}>
+                  <button className={`btn-glass btn-secondary ${mePlayer?.ready ? '' : 'btn-ready'}`} onClick={handleReadyToggle}>
                      {mePlayer?.ready ? 'TAYYOR' : 'TAYYORMAN'}
                   </button>
                   <button className="btn-glass btn-primary" onClick={handleStart} disabled={!allReady}>
                      OʻYINNI BOSHLASH
                   </button>
-                  <button className="btn-glass btn-secondary" onClick={handleCloseRoom}>
+                  <button className="btn-glass btn-secondary" onClick={handleCloseRoom} disabled={adminReady}>
                      XONANI YOPISH
                   </button>
+                  {adminReady && (
+                     <div className="lobby-warning">
+                        Xonani yopish uchun tayyorlikni o'chiring.
+                     </div>
+                  )}
                </div>
             ) : (
                <div style={{ display: 'grid', gap: '12px' }}>

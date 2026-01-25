@@ -958,6 +958,16 @@ body {
   border-color: #fff;
 }
 
+.lobby-warning {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
 .btn-glass.btn-ready {
   border-color: rgba(0, 230, 118, 0.8);
   color: #00e676;
