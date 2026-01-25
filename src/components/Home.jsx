@@ -5,7 +5,15 @@ import { motion } from 'framer-motion';
 const Home = () => {
    const socket = useSocket();
    const avatarColors = ['#ff5252', '#ffb300', '#00c853', '#29b6f6', '#ab47bc', '#ff7043', '#26a69a', '#5c6bc0'];
-   const avatarIcons = ['uno'];
+   const avatarIcons = [
+      '\ud83d\ude0e',
+      '\ud83d\ude3a',
+      '\ud83e\udd16',
+      '\ud83d\udc27',
+      '\ud83e\udd8a',
+      '\ud83d\udc2f',
+      '\ud83d\udc3c'
+   ];
 
    const [nickname, setNickname] = useState('');
    const [roomId, setRoomId] = useState('');
@@ -46,7 +54,7 @@ const Home = () => {
                <div className="home-stats">
                   <div>
                      <span>2-10</span>
-                     <small>O‘yinchi</small>
+                     <small>O'YINCHI</small>
                   </div>
                   <div>
                      <span>LAN</span>
@@ -54,14 +62,6 @@ const Home = () => {
                   </div>
                </div>
             </div>
-            {mode !== 'menu' && (
-               <div className="home-avatar-preview">
-                  <div className="avatar-preview" style={{ background: avatarColor }}>
-                     <img className="avatar-icon-img" src="/unocards/uno-icon.png" alt="UNO" />
-                  </div>
-                  <div className="avatar-preview-label">AVATAR</div>
-               </div>
-            )}
          </div>
 
          {mode === 'menu' && (
@@ -73,14 +73,22 @@ const Home = () => {
 
          {mode === 'create' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="sub-menu">
-               <div className="input-group">
-                  <label>NICKNAME</label>
-                  <input
-                     type="text"
-                     placeholder="Ismingiz..."
-                     value={nickname}
-                     onChange={e => setNickname(e.target.value)}
-                  />
+               <div className="form-header">
+                  <div className="input-group">
+                     <label>NICKNAME</label>
+                     <input
+                        type="text"
+                        placeholder="Ismingiz..."
+                        value={nickname}
+                        onChange={e => setNickname(e.target.value)}
+                     />
+                  </div>
+                  <div className="home-avatar-preview">
+                     <div className="avatar-preview" style={{ background: avatarColor }}>
+                        <span>{avatarIcon}</span>
+                     </div>
+                     <div className="avatar-preview-label">AVATAR</div>
+                  </div>
                </div>
                <div className="avatar-picker">
                   <div className="avatar-section">
@@ -109,7 +117,7 @@ const Home = () => {
                               onClick={() => setAvatarIcon(icon)}
                               aria-label={`Avatar icon ${icon}`}
                            >
-                              <img className="avatar-icon-img" src="/unocards/uno-icon.png" alt="UNO" />
+                              {icon}
                            </button>
                         ))}
                      </div>
@@ -143,14 +151,22 @@ const Home = () => {
 
          {mode === 'join' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="sub-menu">
-               <div className="input-group">
-                  <label>NICKNAME</label>
-                  <input
-                     type="text"
-                     placeholder="Ismingiz..."
-                     value={nickname}
-                     onChange={e => setNickname(e.target.value)}
-                  />
+               <div className="form-header">
+                  <div className="input-group">
+                     <label>NICKNAME</label>
+                     <input
+                        type="text"
+                        placeholder="Ismingiz..."
+                        value={nickname}
+                        onChange={e => setNickname(e.target.value)}
+                     />
+                  </div>
+                  <div className="home-avatar-preview">
+                     <div className="avatar-preview" style={{ background: avatarColor }}>
+                        <span>{avatarIcon}</span>
+                     </div>
+                     <div className="avatar-preview-label">AVATAR</div>
+                  </div>
                </div>
                <div className="avatar-picker">
                   <div className="avatar-section">
@@ -179,7 +195,7 @@ const Home = () => {
                               onClick={() => setAvatarIcon(icon)}
                               aria-label={`Avatar icon ${icon}`}
                            >
-                              <img className="avatar-icon-img" src="/unocards/uno-icon.png" alt="UNO" />
+                              {icon}
                            </button>
                         ))}
                      </div>
