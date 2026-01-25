@@ -25,6 +25,8 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
    const [pendingCardIds, setPendingCardIds] = useState([]);
    const [selectedIds, setSelectedIds] = useState([]);
    const [unoFlashIds, setUnoFlashIds] = useState(new Set());
+   const [isCoarsePointer, setIsCoarsePointer] = useState(false);
+   const [turnNotice, setTurnNotice] = useState('');
 
    const isMyTurn = turnPlayerId === myId;
    const showPassAfterDraw = justDrewPlayablePlayerId === myId;
@@ -32,6 +34,7 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
    const hasUnoPending = (playerId) => unoFlashIds.has(playerId);
    const lastAutoDrawTurn = useRef(null);
    const unoTimers = useRef(new Map());
+   const turnNoticeTimer = useRef(null);
    const opponents = players.filter(p => p.id !== myId);
    const mePlayer = players.find(p => p.id === myId);
 
@@ -140,6 +143,19 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
    };
 
    useEffect(() => {
+      if (typeof window === 'undefined') return;
+      const media = window.matchMedia('(pointer: coarse)');
+      const update = () => setIsCoarsePointer(media.matches);
+      update();
+      if (media.addEventListener) {
+         media.addEventListener('change', update);
+         return () => media.removeEventListener('change', update);
+      }
+      media.addListener(update);
+      return () => media.removeListener(update);
+   }, []);
+
+   useEffect(() => {
       if (!socket) return;
       if (!autoDrawEnabled || !isMyTurn) return;
       if (pendingDrawCount > 0 && pendingDrawPlayerId === myId) return;
@@ -204,6 +220,28 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
       };
    }, [socket]);
 
+   useEffect(() => {
+      if (!turnPlayerId) return;
+      const player = players.find(p => p.id === turnPlayerId);
+      if (!player) return;
+
+      setTurnNotice(player.name);
+      if (turnNoticeTimer.current) {
+         clearTimeout(turnNoticeTimer.current);
+      }
+      turnNoticeTimer.current = setTimeout(() => {
+         setTurnNotice('');
+         turnNoticeTimer.current = null;
+      }, 1500);
+
+      return () => {
+         if (turnNoticeTimer.current) {
+            clearTimeout(turnNoticeTimer.current);
+            turnNoticeTimer.current = null;
+         }
+      };
+   }, [turnPlayerId, players]);
+
    const renderPlayerTile = (player, slotClass, options = {}) => {
       if (!player) return null;
       const isActive = player.id === turnPlayerId;
@@ -255,6 +293,11 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
 
    return (
       <div className="game-table">
+         {turnNotice && (
+            <div className="turn-toast">
+               Ход игрока: {turnNotice}
+            </div>
+         )}
          {/* Corner Seating */}
          {cornerSlots.map(({ slotClass, player }) => renderPlayerTile(player, slotClass))}
          {renderPlayerTile(mePlayer, 'seat-bottom-left', { isMe: true })}
@@ -274,8 +317,8 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
 
             <div className="direction-ring">
                <motion.div
-                  animate={{ rotate: direction === 1 ? 360 : -360 }}
-                  transition={{ repeat: Infinity, duration: 20, ease: "linear" }}
+                  animate={isCoarsePointer ? { rotate: 0 } : { rotate: direction === 1 ? 360 : -360 }}
+                  transition={isCoarsePointer ? { duration: 0 } : { repeat: Infinity, duration: 20, ease: "linear" }}
                >
                   {direction === 1 ? '↺' : '↻'}
                </motion.div>
@@ -283,7 +326,7 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
 
             <motion.div
                className="deck-pill"
-               whileHover={{ scale: 1.05 }}
+               whileHover={isCoarsePointer ? {} : { scale: 1.05 }}
                onClick={() => {
                   if (!isMyTurn) return;
                   if (pendingDrawCount > 0 && pendingDrawPlayerId === myId) {
