@@ -286,11 +286,6 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
             <button className="btn-pill btn-secondary" onClick={onExit}>
                EXIT
             </button>
-            {showPassAfterDraw && (
-               <button className="btn-pill btn-secondary" onClick={() => socket.emit('game:pass')}>
-                  PASS
-               </button>
-            )}
          </div>
 
          {/* HAND - Player 1 */}
@@ -305,7 +300,7 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
                   currentColor={currentColor}
                />
             </div>
-            {(isMyTurn && selectedIds.length > 0) || showUnoButton ? (
+            {(isMyTurn && selectedIds.length > 0) || showUnoButton || showPassAfterDraw ? (
                <div className="hand-actions">
                   {isMyTurn && selectedIds.length > 0 && (
                      <>
@@ -316,6 +311,11 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
                            CLEAR
                         </button>
                      </>
+                  )}
+                  {showPassAfterDraw && (
+                     <button className="btn-pill btn-secondary" onClick={() => socket.emit('game:pass')}>
+                        PASS (SKIP)
+                     </button>
                   )}
                   {showUnoButton && (
                      <button className="btn-pill uno-call-btn" onClick={() => socket.emit('game:uno')}>
