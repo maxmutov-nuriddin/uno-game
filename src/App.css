@@ -1410,6 +1410,7 @@ body {
     background: rgba(0, 0, 0, 0.55);
     border: 1px solid rgba(255, 255, 255, 0.12);
     backdrop-filter: blur(10px);
+    animation: mobileEventFade 3s ease forwards;
   }
 
   .mobile-event-avatar {
@@ -1438,6 +1439,22 @@ body {
 
   .mobile-event-message {
     opacity: 0.9;
+  }
+
+  @keyframes mobileEventFade {
+    0% {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    10%,
+    75% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
   }
 
   .opponents-mobile-strip.dense .glass-chip {

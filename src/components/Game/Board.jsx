@@ -44,6 +44,7 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
    const reactionTimers = useRef(new Map());
    const sentReactionTimer = useRef(null);
    const lastNoticeActionId = useRef(0);
+   const mobileEventTimers = useRef(new Map());
    const opponents = players.filter(p => p.id !== myId);
    const mePlayer = players.find(p => p.id === myId);
 
@@ -168,15 +169,31 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
       setSelectedIds(prev => prev.filter(id => myHand.some(card => card.id === id)));
    }, [myHand]);
 
+   const pushMobileEvent = (entry) => {
+      setMobileEvents(prev => {
+         const next = [...prev, entry];
+         return next.slice(-2);
+      });
+
+      if (mobileEventTimers.current.has(entry.id)) {
+         clearTimeout(mobileEventTimers.current.get(entry.id));
+      }
+      const timerId = setTimeout(() => {
+         setMobileEvents(prev => prev.filter(item => item.id !== entry.id));
+         mobileEventTimers.current.delete(entry.id);
+      }, 3000);
+      mobileEventTimers.current.set(entry.id, timerId);
+   };
+
+   useEffect(() => {
+      return () => {
+         mobileEventTimers.current.forEach(id => clearTimeout(id));
+         mobileEventTimers.current.clear();
+      };
+   }, []);
+
    useEffect(() => {
       if (!socket) return;
-
-      const pushMobileEvent = (entry) => {
-         setMobileEvents(prev => {
-            const next = [...prev, entry];
-            return next.slice(-2);
-         });
-      };
 
       const onUnoCalled = ({ playerId }) => {
          setUnoFlashIds(prev => {
@@ -211,13 +228,6 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
 
    useEffect(() => {
       if (!socket) return;
-      const pushMobileEvent = (entry) => {
-         setMobileEvents(prev => {
-            const next = [...prev, entry];
-            return next.slice(-2);
-         });
-      };
-
       const onReactionShow = ({ playerId, emoji }) => {
          if (!playerId || !emoji) return;
          setReactions(prev => {
