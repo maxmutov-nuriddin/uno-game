@@ -30,12 +30,11 @@ const Home = () => {
          <div className="home-backdrop" aria-hidden="true"></div>
          <div className="home-slice" aria-hidden="true"></div>
          <div className="home-hero">
-            <div>
-               <div className="home-badge">PLAY HUB</div>
+            <div className='home-box'>
+               {/* <div className="home-badge">PLAY HUB</div> */}
                <h1 className="logo">
                   UNO<span>Hub</span>
                </h1>
-               <p className="home-tagline">Quick rooms, fast rounds, clean UI. Jump in and play.</p>
             </div>
             <div className="home-orb" aria-hidden="true"></div>
          </div>
