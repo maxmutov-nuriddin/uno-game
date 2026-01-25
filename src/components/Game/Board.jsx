@@ -30,6 +30,7 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
    const [isCoarsePointer, setIsCoarsePointer] = useState(false);
    const [turnNotice, setTurnNotice] = useState('');
    const [reactions, setReactions] = useState(new Map());
+   const [mobileEvents, setMobileEvents] = useState([]);
    const [rulesOpen, setRulesOpen] = useState(false);
    const [sentReaction, setSentReaction] = useState('');
 
@@ -170,12 +171,21 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
    useEffect(() => {
       if (!socket) return;
 
+      const pushMobileEvent = (entry) => {
+         setMobileEvents(prev => {
+            const next = [...prev, entry];
+            return next.slice(-2);
+         });
+      };
+
       const onUnoCalled = ({ playerId }) => {
          setUnoFlashIds(prev => {
             const next = new Set(prev);
             next.add(playerId);
             return next;
          });
+
+         pushMobileEvent({ id: `${playerId}-uno-${Date.now()}`, type: 'uno', playerId });
 
          if (unoTimers.current.has(playerId)) {
             clearTimeout(unoTimers.current.get(playerId));
@@ -201,6 +211,13 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
 
    useEffect(() => {
       if (!socket) return;
+      const pushMobileEvent = (entry) => {
+         setMobileEvents(prev => {
+            const next = [...prev, entry];
+            return next.slice(-2);
+         });
+      };
+
       const onReactionShow = ({ playerId, emoji }) => {
          if (!playerId || !emoji) return;
          setReactions(prev => {
@@ -208,6 +225,8 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
             next.set(playerId, emoji);
             return next;
          });
+
+         pushMobileEvent({ id: `${playerId}-reaction-${Date.now()}`, type: 'reaction', playerId, emoji });
 
          if (reactionTimers.current.has(playerId)) {
             clearTimeout(reactionTimers.current.get(playerId));
@@ -313,6 +332,28 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
       );
    };
 
+   const renderMobileEvent = (entry) => {
+      const player = players.find(p => p.id === entry.playerId);
+      if (!player) return null;
+      return (
+         <div key={entry.id} className="mobile-event-item">
+            <div className="mobile-event-avatar" style={{ background: player.avatarColor || 'rgba(0, 0, 0, 0.4)' }}>
+               {player.avatarIcon === 'uno' ? (
+                  <img className="avatar-icon-img" src="/unocards/uno-icon.png" alt="UNO" />
+               ) : (
+                  player.avatarIcon || player.name[0].toUpperCase()
+               )}
+            </div>
+            <div className="mobile-event-text">
+               <span className="mobile-event-name">{player.name}</span>
+               <span className="mobile-event-message">
+                  {entry.type === 'uno' ? 'UNO!' : entry.emoji}
+               </span>
+            </div>
+         </div>
+      );
+   };
+
    return (
       <div className="game-table" style={{ '--theme-color': currentColor ? `var(--c-${currentColor})` : 'rgba(255,255,255,0.12)' }}>
          {turnNotice && (
@@ -332,6 +373,11 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
                </div>
             ))}
          </div>
+         {mobileEvents.length > 0 && (
+            <div className="mobile-event-feed">
+               {mobileEvents.map(renderMobileEvent)}
+            </div>
+         )}
 
          {/* 🟢 Center Focal Point */}
          <div className={`table-center ${pendingDrawCount > 0 ? 'table-mood-alert' : ''}`}>

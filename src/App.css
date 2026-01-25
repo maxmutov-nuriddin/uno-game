@@ -1388,6 +1388,58 @@ body {
     display: none;
   }
 
+  .mobile-event-feed {
+    position: absolute;
+    top: 124px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(100%, 560px);
+    padding: 0 12px;
+    box-sizing: border-box;
+    display: grid;
+    gap: 4px;
+    z-index: 4;
+  }
+
+  .mobile-event-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    border-radius: 14px;
+    background: rgba(0, 0, 0, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(10px);
+  }
+
+  .mobile-event-avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .mobile-event-text {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.78rem;
+  }
+
+  .mobile-event-name {
+    font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+
+  .mobile-event-message {
+    opacity: 0.9;
+  }
+
   .opponents-mobile-strip.dense .glass-chip {
     padding: 6px 8px;
     gap: 6px;
@@ -1433,6 +1485,12 @@ body {
 
   .hand-actions {
     bottom: 210px;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-event-feed {
+    display: none;
   }
 }
 
