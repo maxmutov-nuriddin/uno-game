@@ -178,26 +178,40 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
       const cardCount = isMe ? myHand.length : player.cardCount;
       return (
          <div className={`${slotClass} player-tile ${isActive ? 'active' : ''} ${options.compact ? 'compact' : ''} ${isMe ? 'me' : ''}`}>
-            <div className="glass-chip" style={{ position: 'relative' }}>
-               {isActive && <div className="active-glow" style={{ color: currentColor || '#fff' }}></div>}
-               <div className="avatar-initials" style={{ opacity: player.isOnline ? 1 : 0.4 }}>
+            <div className="glass-chip">
+               <div className="avatar-initials">
                   {player.name[0].toUpperCase()}
+                  <div className={`online-indicator ${player.isOnline ? '' : 'offline'}`} />
                </div>
-               <div className="opp-meta">
-                  <div className="opp-name" style={{ fontSize: '0.8rem', fontWeight: 600 }}>{player.name}</div>
-                  <div className="opp-cards" style={{ '--count': cardCount }}>
-                     {Array.from({ length: cardCount }).map((_, index) => (
-                        <img
+
+               <div className="tile-meta">
+                  <div className="opp-name">{player.name}</div>
+                  <div className="opp-cards">
+                     {Array.from({ length: Math.min(cardCount, 8) }).map((_, index) => (
+                        <div
                            key={index}
                            className="opp-card"
-                           style={{ '--i': index }}
-                           src="/unocards/card-back.svg"
-                           alt="Card back"
-                           draggable="false"
+                           style={{
+                              zIndex: index,
+                              transform: `translateX(${index * 6}px)`
+                           }}
                         />
                      ))}
+                     {cardCount > 8 && (
+                        <span style={{
+                           fontSize: '0.65rem',
+                           opacity: 0.8,
+                           color: '#fff',
+                           marginLeft: (8 * 6) + 8 + 'px',
+                           fontWeight: 700,
+                           lineHeight: '14px'
+                        }}>
+                           +{cardCount - 8}
+                        </span>
+                     )}
                   </div>
                </div>
+
                {hasUnoPending(player.id) && (
                   <div className="uno-badge">UNO</div>
                )}
