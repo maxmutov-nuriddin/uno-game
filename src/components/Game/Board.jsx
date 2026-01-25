@@ -344,6 +344,15 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
                            />
                         ))}
                      </div>
+                     <button
+                        style={{ marginTop: '24px', width: '100%', padding: '12px', borderRadius: '12px', background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: 700 }}
+                        onClick={() => {
+                           setModalOpen(false);
+                           setPendingCardId(null);
+                        }}
+                     >
+                        BEKOR QILISH
+                     </button>
                   </div>
                </motion.div>
             )}
