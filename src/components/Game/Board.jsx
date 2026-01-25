@@ -330,9 +330,7 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
                onClick={() => {
                   if (!isMyTurn) return;
                   if (pendingDrawCount > 0 && pendingDrawPlayerId === myId) {
-                     for (let i = 0; i < pendingDrawCount; i += 1) {
-                        socket.emit('game:draw');
-                     }
+                     socket.emit('game:draw');
                      return;
                   }
                   socket.emit('game:draw');
