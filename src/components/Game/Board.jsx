@@ -10,6 +10,7 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
       roomId,
       players,
       activeCard,
+      previousActiveCard,
       currentColor,
       direction,
       turnPlayerId,
@@ -83,13 +84,20 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
       }
 
       const first = myHand.find(c => c.id === selectedIds[0]);
-      if (!first || first.type !== 'number') {
-         clearSelection();
+
+      // Allow number stacking
+      if (first.type === 'number' && card.type === 'number' && card.value === first.value) {
+         setSelectedIds(prev => [...prev, card.id]);
          return;
       }
-      if (card.value !== first.value) return;
 
-      setSelectedIds(prev => [...prev, card.id]);
+      // Allow +2 stacking
+      if (first.type === 'plus2' && card.type === 'plus2') {
+         setSelectedIds(prev => [...prev, card.id]);
+         return;
+      }
+
+      return;
    };
 
    const canPlayCard = (card) => {
@@ -266,12 +274,47 @@ const Board = ({ gameState, myHand, myId, winner, onExit }) => {
                <div style={{ textAlign: 'center', fontSize: '0.7rem', marginTop: '5px', opacity: 0.6 }}>DRAW</div>
             </motion.div>
 
-            <div className="active-card-box">
+            <div className="active-card-box" style={{ position: 'relative' }}>
+               {/* Previous Card - purely visual history */}
+               {previousActiveCard && (
+                  <div style={{ position: 'absolute', top: 0, left: 0, opacity: 0.5, transform: 'rotate(-45deg) scale(0.9)', zIndex: 0 }}>
+                     <Card card={previousActiveCard} size="large" />
+                  </div>
+               )}
+
+               {/* Draw Counter Badge */}
+               {pendingDrawCount > 0 && (
+                  <motion.div
+                     initial={{ scale: 0 }}
+                     animate={{ scale: 1 }}
+                     style={{
+                        position: 'absolute',
+                        top: -20,
+                        right: -20,
+                        background: '#ff1744',
+                        color: 'white',
+                        fontWeight: '900',
+                        fontSize: '1.2rem',
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+                        zIndex: 50,
+                        border: '2px solid white'
+                     }}
+                  >
+                     +{pendingDrawCount}
+                  </motion.div>
+               )}
+
                <AnimatePresence mode='wait'>
                   <motion.div
                      key={activeCard?.id || 'empty'}
                      initial={{ scale: 0.5, opacity: 0, rotate: -20, y: -50 }}
-                     animate={{ scale: 1.1, opacity: 1, rotate: 0, y: 0 }}
+                     animate={{ scale: 1.1, opacity: 1, rotate: 0, y: 0, zIndex: 10 }}
                      exit={{ scale: 0.5, opacity: 0, x: -100 }}
                      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                   >
