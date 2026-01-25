@@ -1360,18 +1360,66 @@ body {
     left: 50%;
     transform: translateX(-50%);
     display: flex;
+    width: min(100%, 560px);
+    padding: 0 10px;
+    box-sizing: border-box;
     gap: 10px;
     z-index: 4;
+    overflow-x: auto;
+    overflow-y: visible;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
   }
 
   .mobile-opp .player-tile {
     position: relative;
+    scroll-snap-align: start;
   }
 
   .mobile-opp .glass-chip {
     padding: 8px 10px;
     gap: 8px;
     border-radius: 16px;
+  }
+
+  .opponents-mobile-strip::-webkit-scrollbar {
+    display: none;
+  }
+
+  .opponents-mobile-strip.dense .glass-chip {
+    padding: 6px 8px;
+    gap: 6px;
+  }
+
+  .opponents-mobile-strip.dense .opp-name {
+    font-size: 0.78rem;
+  }
+
+  .opponents-mobile-strip.dense-more .glass-chip {
+    padding: 5px 6px;
+  }
+
+  .opponents-mobile-strip.dense-more .avatar-initials {
+    width: 32px;
+    height: 32px;
+    font-size: 0.8rem;
+  }
+
+  .opponents-mobile-strip .uno-badge {
+    top: -6px;
+    right: -6px;
+    font-size: 0.55rem;
+    padding: 3px 6px;
+  }
+
+  .opponents-mobile-strip .reaction-pop {
+    top: -12px;
+    right: -8px;
+    width: 26px;
+    height: 26px;
+    font-size: 0.9rem;
   }
 
   .hand-area {

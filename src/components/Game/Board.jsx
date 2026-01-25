@@ -325,7 +325,7 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
          {renderPlayerTile(mePlayer, 'seat-bottom-left', { isMe: true })}
 
          {/* Mobile strip fallback (if screened) */}
-         <div className="opponents-mobile-strip">
+         <div className={`opponents-mobile-strip ${opponents.length > 3 ? 'dense' : ''} ${opponents.length > 6 ? 'dense-more' : ''}`}>
             {opponents.map(player => (
                <div key={player.id} className="mobile-opp">
                   {renderPlayerTile(player, '', { compact: true })}
