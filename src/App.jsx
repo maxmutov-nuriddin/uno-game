@@ -107,12 +107,15 @@ function Content() {
           {toasts.map(t => (
             <motion.div
               key={t.id}
-              initial={{ opacity: 0, y: 20, scale: 0.8 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
+              initial={{ opacity: 0, x: 50, scale: 0.9 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9, x: 20 }}
               className={`glass-toast ${t.type}`}
             >
-              {t.message}
+              <div className="toast-icon">
+                {t.type === 'error' ? '✕' : t.type === 'success' ? '✓' : 'ℹ'}
+              </div>
+              <div className="toast-message">{t.message}</div>
             </motion.div>
           ))}
         </AnimatePresence>
