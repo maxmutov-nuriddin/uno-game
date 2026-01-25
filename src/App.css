@@ -403,6 +403,42 @@ body {
 .home-container,
 .lobby-container {
   width: min(560px, 94vw);
+  max-height: calc(100vh - 24px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+  scrollbar-gutter: stable;
+  padding-right: 6px;
+}
+
+.home-container::-webkit-scrollbar,
+.lobby-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.home-container::-webkit-scrollbar-track,
+.lobby-container::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 10px 0;
+}
+
+.home-container::-webkit-scrollbar-thumb,
+.lobby-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.12));
+  border-radius: 999px;
+  border: none;
+}
+
+.home-container::-webkit-scrollbar-thumb:hover,
+.lobby-container::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.2));
+}
+
+.home-container::-webkit-scrollbar-corner,
+.lobby-container::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 .lobby-container {
@@ -494,7 +530,10 @@ body {
 
 .home-container {
   text-align: left;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-height: calc(100vh - 32px);
+  padding: clamp(20px, 4vh, 48px);
 }
 
 .home-backdrop {
@@ -609,6 +648,60 @@ body {
 
 .home-actions {
   margin-top: 12px;
+}
+
+@media (max-height: 820px) {
+  .home-hero {
+    margin-bottom: 18px;
+  }
+
+  .home-tagline {
+    margin-top: 8px;
+  }
+
+  .home-stats {
+    margin-top: 12px;
+  }
+
+  .menu-buttons,
+  .sub-menu {
+    margin-top: 16px;
+    gap: 12px;
+  }
+
+  .input-group {
+    margin-top: 18px;
+  }
+
+  .avatar-picker {
+    margin-top: 12px;
+    gap: 12px;
+  }
+
+  .avatar-icons {
+    gap: 8px;
+  }
+
+  .avatar-icon {
+    height: 30px;
+    font-size: 1rem;
+    border-radius: 10px;
+  }
+
+  .avatar-preview {
+    width: 56px;
+    height: 56px;
+    font-size: 1.6rem;
+  }
+
+  .logo {
+    font-size: 3.4rem;
+    margin-bottom: 12px;
+  }
+
+  .btn-glass {
+    padding: 10px 14px;
+  }
 }
 
 .avatar-picker {
