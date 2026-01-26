@@ -22,6 +22,7 @@ const Home = () => {
    const [startCardsOpen, setStartCardsOpen] = useState(false);
    const [autoDrawEnabled, setAutoDrawEnabled] = useState(true);
    const [mode, setMode] = useState('menu');
+   const [entryMode, setEntryMode] = useState(null);
    const [nicknameNotice, setNicknameNotice] = useState('');
    const [roomIdNotice, setRoomIdNotice] = useState('');
    const [avatarColor, setAvatarColor] = useState(avatarColors[0]);
@@ -70,7 +71,14 @@ const Home = () => {
          showNicknameNotice("Ismingizni kiriting.");
          return;
       }
-      socket.emit('room:create', { nickname, startCardsCount: startCards, autoDrawEnabled, avatarColor, avatarIcon });
+      socket.emit('room:create', {
+         nickname,
+         startCardsCount: startCards,
+         autoDrawEnabled,
+         avatarColor,
+         avatarIcon,
+         hostSpectator: entryMode === 'lan'
+      });
    };
 
    const handleJoin = () => {
@@ -121,23 +129,37 @@ const Home = () => {
                      <span>2-10</span>
                      <small>O'YINCHI</small>
                   </div>
-                  <div>
-                     <span>LAN</span>
-                     <small>Tez aloqa</small>
-                  </div>
+                  {entryMode && (
+                     <div>
+                        <span>{entryMode === 'lan' ? 'LAN' : 'ONLINE'}</span>
+                        <small>Tez aloqa</small>
+                     </div>
+                  )}
                </div>
             </div>
          </div>
 
-         {mode === 'menu' && (
+         {mode === 'menu' && !entryMode && (
             <div className="menu-buttons home-actions">
+               <button className="btn-glass btn-primary" onClick={() => setEntryMode('lan')}>LAN</button>
+               <button className="btn-glass btn-secondary" onClick={() => setEntryMode('online')}>ONLINE</button>
+            </div>
+         )}
+
+         {mode === 'menu' && entryMode && (
+            <div className="menu-buttons home-actions">
+               <div className="mode-chip">REJIM: {entryMode === 'lan' ? 'LAN' : 'ONLINE'}</div>
                <button className="btn-glass btn-primary" onClick={() => setMode('create')}>XONA YARATISH</button>
                <button className="btn-glass btn-secondary" onClick={() => setMode('join')}>QO'SHILISH</button>
+               <button className="btn-glass btn-secondary" onClick={() => setEntryMode(null)}>REJIMNI O'ZGARTIRISH</button>
             </div>
          )}
 
          {mode === 'create' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="sub-menu">
+               {entryMode && (
+                  <div className="mode-chip subtle">REJIM: {entryMode === 'lan' ? 'LAN (ADMIN TOMOSHA)' : 'ONLINE'}</div>
+               )}
                <div className="form-header">
                   <div className="input-group">
                      <label>NICKNAME</label>
@@ -268,6 +290,9 @@ const Home = () => {
 
          {mode === 'join' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="sub-menu">
+               {entryMode && (
+                  <div className="mode-chip subtle">REJIM: {entryMode === 'lan' ? 'LAN' : 'ONLINE'}</div>
+               )}
                <div className="form-header">
                   <div className="input-group">
                      <label>NICKNAME</label>

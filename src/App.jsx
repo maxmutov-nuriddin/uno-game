@@ -80,7 +80,7 @@ function Content() {
     socket.on('room:created', handleJoin);
     socket.on('room:joined', handleJoin);
 
-    socket.on('stateUpdate', (data) => {
+      socket.on('stateUpdate', (data) => {
       setGameState(data);
       if (data.status === 'playing') setView('game');
       else if (data.status === 'lobby') setView('lobby');
@@ -88,6 +88,9 @@ function Content() {
       if (data.me) {
         setMyHand(data.me.hand);
         setLobbyState(prev => ({ ...prev, myId: data.me.id }));
+      } else {
+        setMyHand([]);
+        setLobbyState(prev => ({ ...prev, myId: null }));
       }
 
       if (data.gameSummary) {

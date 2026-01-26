@@ -8,6 +8,7 @@ const Lobby = ({ gameState, lobbyState }) => {
    const { roomId, isAdmin } = lobbyState;
    const allReady = players.length >= 2 && players.every(p => p.ready);
    const mePlayer = players.find(p => p.id === lobbyState.myId);
+   const isSpectatorAdmin = isAdmin && !mePlayer;
    const [copied, setCopied] = useState(false);
    const adminReady = isAdmin && !!mePlayer?.ready;
 
@@ -30,7 +31,21 @@ const Lobby = ({ gameState, lobbyState }) => {
          setCopied(true);
          setTimeout(() => setCopied(false), 1500);
       } catch (e) {
-         setCopied(false);
+         try {
+            const tempInput = document.createElement('input');
+            tempInput.value = roomId;
+            tempInput.setAttribute('readonly', 'true');
+            tempInput.style.position = 'absolute';
+            tempInput.style.left = '-9999px';
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            const ok = document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            setCopied(!!ok);
+            if (ok) setTimeout(() => setCopied(false), 1500);
+         } catch (err) {
+            setCopied(false);
+         }
       }
    };
 
@@ -82,11 +97,13 @@ const Lobby = ({ gameState, lobbyState }) => {
          <div style={{ marginTop: '16px' }}>
             {isAdmin ? (
                <div className="form-row">
-                  <button className={`btn-glass btn-secondary ${mePlayer?.ready ? '' : 'btn-ready'}`} onClick={handleReadyToggle}>
-                     {mePlayer?.ready ? 'TAYYOR' : 'TAYYORMAN'}
-                  </button>
+                  {!isSpectatorAdmin && (
+                     <button className="btn-glass btn-secondary ${mePlayer?.ready ? '' : 'btn-ready'}" onClick={handleReadyToggle}>
+                        {mePlayer?.ready ? 'TAYYOR' : 'TAYYORMAN'}
+                     </button>
+                  )}
                   <button className="btn-glass btn-primary" onClick={handleStart} disabled={!allReady}>
-                     OʻYINNI BOSHLASH
+                     O'YINNI BOSHLASH
                   </button>
                   <button className="btn-glass btn-secondary" onClick={handleCloseRoom} disabled={adminReady}>
                      XONANI YOPISH
@@ -94,6 +111,11 @@ const Lobby = ({ gameState, lobbyState }) => {
                   {adminReady && (
                      <div className="lobby-warning">
                         Xonani yopish uchun tayyorlikni o'chiring.
+                     </div>
+                  )}
+                  {isSpectatorAdmin && (
+                     <div className="lobby-warning">
+                        ADMIN TOMOSHA REJIMI.
                      </div>
                   )}
                </div>
