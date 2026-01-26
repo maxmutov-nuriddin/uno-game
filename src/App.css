@@ -30,9 +30,17 @@
 body {
   margin: 0;
   background-color: #080808;
-  background-image: 
-    radial-gradient(circle at 50% -10%, rgba(226, 28, 35, 0.1) 0%, transparent 60%),
-    radial-gradient(circle at 100% 100%, rgba(12, 158, 217, 0.05) 0%, transparent 50%);
+  background-image:
+    radial-gradient(
+      circle at 50% -10%,
+      rgba(226, 28, 35, 0.1) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      circle at 100% 100%,
+      rgba(12, 158, 217, 0.05) 0%,
+      transparent 50%
+    );
   background-attachment: fixed;
   color: #fff;
   font-family: "Outfit", sans-serif;
@@ -81,8 +89,12 @@ body {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(600px 320px at 50% 40%, color-mix(in srgb, var(--theme-color) 18%, transparent), transparent 70%),
-    linear-gradient(160deg, rgba(10,10,10,0.9), rgba(5,5,5,0.95));
+    radial-gradient(
+      600px 320px at 50% 40%,
+      color-mix(in srgb, var(--theme-color) 18%, transparent),
+      transparent 70%
+    ),
+    linear-gradient(160deg, rgba(10, 10, 10, 0.9), rgba(5, 5, 5, 0.95));
   z-index: 1;
   pointer-events: none;
   transition: background 1.4s ease;
@@ -108,7 +120,9 @@ body {
   filter: blur(80px);
   opacity: 0.15;
   pointer-events: none;
-  transition: background 1s cubic-bezier(0.4, 0, 0.2, 1), transform 1s ease;
+  transition:
+    background 1s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 1s ease;
   z-index: 1;
 }
 
@@ -197,7 +211,9 @@ body {
 .player-tile.active .glass-chip {
   background: rgba(255, 255, 255, 0.12);
   border-color: #ff1744;
-  box-shadow: 0 0 0 1px #ff1744, 0 8px 20px rgba(0,0,0,0.5);
+  box-shadow:
+    0 0 0 1px #ff1744,
+    0 8px 20px rgba(0, 0, 0, 0.5);
 }
 
 .uno-badge {
@@ -256,7 +272,9 @@ body {
   color: #fff;
   cursor: pointer;
   font-size: 1rem;
-  transition: transform 0.15s ease, background 0.2s ease;
+  transition:
+    transform 0.15s ease,
+    background 0.2s ease;
 }
 
 .reaction-btn:hover {
@@ -410,7 +428,7 @@ body {
   backdrop-filter: blur(40px);
   -webkit-backdrop-filter: blur(40px);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 
+  box-shadow:
     0 40px 100px rgba(0, 0, 0, 0.8),
     inset 0 0 0 1px rgba(255, 255, 255, 0.02);
   max-width: 100%;
@@ -418,14 +436,17 @@ body {
   overflow: visible;
 }
 
-.home-slice, .home-backdrop {
+.home-slice,
+.home-backdrop {
   display: none;
 }
 
 .home-container,
 .lobby-container {
   width: min(560px, 94vw);
-  max-height: calc(100vh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  max-height: calc(
+    100vh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom)
+  );
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
@@ -447,14 +468,22 @@ body {
 
 .home-container::-webkit-scrollbar-thumb,
 .lobby-container::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.12));
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.28),
+    rgba(255, 255, 255, 0.12)
+  );
   border-radius: 999px;
   border: none;
 }
 
 .home-container::-webkit-scrollbar-thumb:hover,
 .lobby-container::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.2));
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.4),
+    rgba(255, 255, 255, 0.2)
+  );
 }
 
 .home-container::-webkit-scrollbar-corner,
@@ -553,7 +582,9 @@ body {
   text-align: left;
   overflow-x: hidden;
   overflow-y: auto;
-  max-height: calc(100vh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  max-height: calc(
+    100vh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom)
+  );
   padding: clamp(20px, 4vh, 48px);
   padding-top: calc(clamp(20px, 4vh, 48px) + env(safe-area-inset-top));
 }
@@ -562,9 +593,21 @@ body {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(700px 260px at 0% 0%, rgba(255, 218, 76, 0.18), transparent 60%),
-    radial-gradient(520px 320px at 100% 100%, rgba(226, 28, 35, 0.18), transparent 60%),
-    linear-gradient(120deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    radial-gradient(
+      700px 260px at 0% 0%,
+      rgba(255, 218, 76, 0.18),
+      transparent 60%
+    ),
+    radial-gradient(
+      520px 320px at 100% 100%,
+      rgba(226, 28, 35, 0.18),
+      transparent 60%
+    ),
+    linear-gradient(
+      120deg,
+      rgba(255, 255, 255, 0.03),
+      rgba(255, 255, 255, 0.01)
+    );
   pointer-events: none;
 }
 
@@ -576,7 +619,11 @@ body {
   height: 260px;
   border-radius: 40px;
   transform: rotate(18deg);
-  background: linear-gradient(135deg, rgba(255, 218, 76, 0.28), rgba(12, 158, 217, 0.16));
+  background: linear-gradient(
+    135deg,
+    rgba(255, 218, 76, 0.28),
+    rgba(12, 158, 217, 0.16)
+  );
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
   pointer-events: none;
 }
@@ -760,7 +807,9 @@ body {
   border-radius: 50%;
   border: 2px solid rgba(255, 255, 255, 0.15);
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.2s ease;
 }
 
 .avatar-swatch.selected {
@@ -781,7 +830,9 @@ body {
   background: rgba(255, 255, 255, 0.06);
   cursor: pointer;
   font-size: 1.2rem;
-  transition: transform 0.15s ease, background 0.2s ease;
+  transition:
+    transform 0.15s ease,
+    background 0.2s ease;
 }
 .avatar-icon.selected {
   background: rgba(255, 255, 255, 0.18);
@@ -816,13 +867,25 @@ body {
 }
 
 @keyframes corePulse {
-  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
-  50% { transform: translate(-50%, -50%) scale(1.3); opacity: 0.9; }
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.3);
+    opacity: 0.9;
+  }
 }
 
 @keyframes orbFloat {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
 }
 
 .input-group {
@@ -862,13 +925,19 @@ body {
   border-radius: 2px;
 }
 
-.logo::before, .logo-shine {
+.logo::before,
+.logo-shine {
   display: none !important;
 }
 
 @keyframes shine {
-  0% { transform: translateX(-150%) rotate(25deg); }
-  20%, 100% { transform: translateX(250%) rotate(25deg); }
+  0% {
+    transform: translateX(-150%) rotate(25deg);
+  }
+  20%,
+  100% {
+    transform: translateX(250%) rotate(25deg);
+  }
 }
 
 .menu-buttons,
@@ -920,7 +989,7 @@ body {
   color: #fff;
   font-size: 16px;
   outline: none;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
 }
 
 .input-group input[type="text"]::placeholder {
@@ -1291,8 +1360,6 @@ body {
   font-size: 0.9rem;
 }
 
-
-
 /* Center Interaction Objects */
 .deck-pill {
   position: relative;
@@ -1524,6 +1591,118 @@ body {
   }
 }
 
+@media (max-width: 420px) {
+  .game-table {
+    padding: calc(16px + env(safe-area-inset-top)) 10px 130px;
+    overflow-x: hidden;
+  }
+
+  .game-table::before {
+    inset: 32px 12px 110px;
+  }
+
+  .table-controls {
+    left: 0;
+    transform: none;
+    width: 100%;
+    justify-content: flex-start;
+    padding: 0 10px;
+    /* overflow-x: auto; */
+    overflow-y: visible;
+    white-space: nowrap;
+    scrollbar-width: none;
+  }
+
+  .table-controls::-webkit-scrollbar {
+    display: none;
+  }
+
+  .table-controls .btn-pill,
+  .table-controls .reaction-bar {
+    flex: 0 0 auto;
+  }
+
+  .opponents-mobile-strip {
+    top: 64px;
+  }
+
+  .mobile-event-feed {
+    top: 128px;
+  }
+}
+
+@media (max-width: 360px) {
+  .game-table {
+    padding: calc(14px + env(safe-area-inset-top)) 8px 120px;
+  }
+
+  .game-table::before {
+    inset: 28px 10px 100px;
+  }
+
+  .table-center {
+    top: 45%;
+    gap: 18px;
+  }
+
+  .direction-ring {
+    width: 240px;
+    height: 240px;
+  }
+
+  .deck-image {
+    width: 72px;
+  }
+
+  .card-wrapper.large {
+    width: clamp(120px, 42vw, 170px);
+    height: clamp(170px, 58vw, 240px);
+  }
+
+  .card-wrapper.small {
+    width: clamp(46px, 16vw, 70px);
+    height: clamp(66px, 22vw, 100px);
+  }
+}
+
+@media (max-width: 320px) {
+  .game-table {
+    padding: calc(12px + env(safe-area-inset-top)) 6px 110px;
+  }
+
+  .game-table::before {
+    inset: 24px 8px 92px;
+  }
+
+  .table-controls {
+    padding: 0 6px;
+  }
+
+  .table-center {
+    top: 44%;
+    gap: 14px;
+  }
+
+  .direction-ring {
+    width: 210px;
+    height: 210px;
+  }
+
+  .deck-image {
+    width: 64px;
+  }
+
+  .card-wrapper.large {
+    width: clamp(112px, 40vw, 156px);
+    height: clamp(160px, 56vw, 220px);
+  }
+
+  .card-wrapper.small {
+    width: clamp(44px, 15vw, 64px);
+    height: clamp(62px, 21vw, 92px);
+  }
+}
+
 @media (min-width: 769px) {
   .mobile-event-feed {
     display: none;
@@ -1591,14 +1770,13 @@ body {
   .premium-box {
     padding: 24px 20px;
   }
-
 }
 
 @media (max-width: 400px) {
   .logo {
     font-size: 2.2rem;
   }
-  
+
   .home-tagline {
     font-size: 0.9rem;
   }
@@ -1606,6 +1784,10 @@ body {
   .btn-glass {
     padding: 10px 12px;
     font-size: 0.9rem;
+  }
+
+  .avatar-icons {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
@@ -1631,7 +1813,7 @@ body {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 
+  box-shadow:
     0 10px 30px rgba(0, 0, 0, 0.5),
     inset 0 0 0 1px rgba(255, 255, 255, 0.02);
   color: #fff;
@@ -1681,8 +1863,15 @@ body {
 }
 
 @keyframes moodPulse {
-  0%, 100% { transform: scale(1); opacity: 0.22; }
-  50% { transform: scale(1.08); opacity: 0.32; }
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.22;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 0.32;
+  }
 }
 
 .player-tile.hot-seat .glass-chip {
@@ -1694,7 +1883,8 @@ body {
 }
 
 @keyframes hotSeatPulse {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow:
       0 0 0 2px rgba(255, 23, 68, 0.35),
       0 0 18px rgba(255, 23, 68, 0.35);
@@ -1705,5 +1895,3 @@ body {
       0 0 26px rgba(255, 23, 68, 0.7);
   }
 }
-
-
