@@ -67,7 +67,7 @@ const Home = () => {
    };
 
    const handleCreate = () => {
-      if (!nickname) {
+      if (entryMode !== 'lan' && !nickname) {
          showNicknameNotice("Ismingizni kiriting.");
          return;
       }
@@ -160,63 +160,67 @@ const Home = () => {
                {entryMode && (
                   <div className="mode-chip subtle">REJIM: {entryMode === 'lan' ? 'LAN (ADMIN TOMOSHA)' : 'ONLINE'}</div>
                )}
-               <div className="form-header">
-                  <div className="input-group">
-                     <label>NICKNAME</label>
-                     <div className="nickname-row">
-                        <input
-                           type="text"
-                           placeholder="Ismingiz..."
-                           value={nickname}
-                           onChange={e => setNickname(e.target.value.slice(0, 15))}
-                           maxLength={15}
-                        />
-                        <button type="button" className="btn-glass btn-secondary nickname-random" onClick={generateRandomName} aria-label="Random nickname">
-                           {'\ud83c\udfb2'}
-                        </button>
+               {entryMode !== 'lan' && (
+                  <>
+                     <div className="form-header">
+                        <div className="input-group">
+                           <label>NICKNAME</label>
+                           <div className="nickname-row">
+                              <input
+                                 type="text"
+                                 placeholder="Ismingiz..."
+                                 value={nickname}
+                                 onChange={e => setNickname(e.target.value.slice(0, 15))}
+                                 maxLength={15}
+                              />
+                              <button type="button" className="btn-glass btn-secondary nickname-random" onClick={generateRandomName} aria-label="Random nickname">
+                                 {'\ud83c\udfb2'}
+                              </button>
+                           </div>
+                           {nicknameNotice && <div className="form-notice">{nicknameNotice}</div>}
+                        </div>
+                        <div className="home-avatar-preview">
+                           <div className="avatar-preview" style={{ background: avatarColor }}>
+                              <span>{avatarIcon}</span>
+                           </div>
+                           <div className="avatar-preview-label">AVATAR</div>
+                        </div>
                      </div>
-                     {nicknameNotice && <div className="form-notice">{nicknameNotice}</div>}
-                  </div>
-                  <div className="home-avatar-preview">
-                     <div className="avatar-preview" style={{ background: avatarColor }}>
-                        <span>{avatarIcon}</span>
+                     <div className="avatar-picker">
+                        <div className="avatar-section">
+                           <div className="avatar-label">AVATAR RANGI</div>
+                           <div className="avatar-swatches">
+                              {avatarColors.map(color => (
+                                 <button
+                                    key={color}
+                                    type="button"
+                                    className={`avatar-swatch ${avatarColor === color ? 'selected' : ''}`}
+                                    style={{ background: color }}
+                                    onClick={() => setAvatarColor(color)}
+                                    aria-label={`Avatar color ${color}`}
+                                 />
+                              ))}
+                           </div>
+                        </div>
+                        <div className="avatar-section">
+                           <div className="avatar-label">AVATAR IKKONASI</div>
+                           <div className="avatar-icons">
+                              {avatarIcons.map(icon => (
+                                 <button
+                                    key={icon}
+                                    type="button"
+                                    className={`avatar-icon ${avatarIcon === icon ? 'selected' : ''}`}
+                                    onClick={() => setAvatarIcon(icon)}
+                                    aria-label={`Avatar icon ${icon}`}
+                                 >
+                                    {icon}
+                                 </button>
+                              ))}
+                           </div>
+                        </div>
                      </div>
-                     <div className="avatar-preview-label">AVATAR</div>
-                  </div>
-               </div>
-               <div className="avatar-picker">
-                  <div className="avatar-section">
-                     <div className="avatar-label">AVATAR RANGI</div>
-                     <div className="avatar-swatches">
-                        {avatarColors.map(color => (
-                           <button
-                              key={color}
-                              type="button"
-                              className={`avatar-swatch ${avatarColor === color ? 'selected' : ''}`}
-                              style={{ background: color }}
-                              onClick={() => setAvatarColor(color)}
-                              aria-label={`Avatar color ${color}`}
-                           />
-                        ))}
-                     </div>
-                  </div>
-                  <div className="avatar-section">
-                     <div className="avatar-label">AVATAR IKKONASI</div>
-                     <div className="avatar-icons">
-                        {avatarIcons.map(icon => (
-                           <button
-                              key={icon}
-                              type="button"
-                              className={`avatar-icon ${avatarIcon === icon ? 'selected' : ''}`}
-                              onClick={() => setAvatarIcon(icon)}
-                              aria-label={`Avatar icon ${icon}`}
-                           >
-                              {icon}
-                           </button>
-                        ))}
-                     </div>
-                  </div>
-               </div>
+                  </>
+               )}
                <div className="input-group" style={{ margin: '20px 0' }}>
                   <label>BOSHLANG'ICH KARTALAR</label>
                   <div className="select-field">

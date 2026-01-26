@@ -42,10 +42,11 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
    const [turnRemaining, setTurnRemaining] = useState(0);
    const [momentReplay, setMomentReplay] = useState(null);
    const [highlightNotice, setHighlightNotice] = useState('');
+   const [flyBanners, setFlyBanners] = useState([]);
 
    const isMyTurn = turnPlayerId === myId;
-   const showPassAfterDraw = justDrewPlayablePlayerId === myId;
-   const showUnoButton = pendingUnoIds?.includes(myId);
+   const showPassAfterDraw = !!myId && justDrewPlayablePlayerId === myId;
+   const showUnoButton = !!myId && pendingUnoIds?.includes(myId);
    const hasUnoPending = (playerId) => unoFlashIds.has(playerId);
    const lastAutoDrawTurn = useRef(null);
    const unoTimers = useRef(new Map());
@@ -57,9 +58,28 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
    const reactionPanelRef = useRef(null);
    const highlightTimer = useRef(null);
    const replayTimer = useRef(null);
+   const flyTimers = useRef(new Map());
+   const lastWinnerRef = useRef(null);
    const opponents = players.filter(p => p.id !== myId);
    const mePlayer = players.find(p => p.id === myId);
+   const splitIndex = Math.ceil(opponents.length / 2);
+   const leftOpponents = opponents.slice(0, splitIndex);
+   const rightOpponents = opponents.slice(splitIndex);
    const reactionEmojis = ['\ud83d\udd25', '\ud83d\ude02', '\ud83d\ude0e'];
+
+   const pushFlyBanner = (textLabel) => {
+      const id = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+      const entry = { id, text: textLabel };
+      setFlyBanners(prev => [...prev, entry].slice(-3));
+      if (flyTimers.current.has(id)) {
+         clearTimeout(flyTimers.current.get(id));
+      }
+      const timerId = setTimeout(() => {
+         setFlyBanners(prev => prev.filter(item => item.id != id));
+         flyTimers.current.delete(id);
+      }, 2200);
+      flyTimers.current.set(id, timerId);
+   };
 
    const formatDuration = (seconds = 0) => {
       const mins = Math.floor(seconds / 60);
@@ -67,13 +87,7 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
       return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
    };
 
-   const cornerSlots = [
-      { slotClass: 'seat-top-left', player: opponents[0] },
-      { slotClass: 'seat-top-right', player: opponents[1] },
-      { slotClass: 'seat-bottom-right', player: opponents[2] },
-   ];
-
-   const clearSelection = () => setSelectedIds([]);
+      const clearSelection = () => setSelectedIds([]);
 
    const onPlaySelected = () => {
       if (!isMyTurn || selectedIds.length === 0) return;
@@ -216,6 +230,8 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
       return () => {
          mobileEventTimers.current.forEach(id => clearTimeout(id));
          mobileEventTimers.current.clear();
+         flyTimers.current.forEach(id => clearTimeout(id));
+         flyTimers.current.clear();
       };
    }, []);
 
@@ -235,6 +251,7 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
       if (!socket) return;
 
       const onUnoCalled = ({ playerId }) => {
+         pushFlyBanner('UNO!');
          setUnoFlashIds(prev => {
             const next = new Set(prev);
             next.add(playerId);
@@ -377,7 +394,13 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
       const isActive = player.id === turnPlayerId;
       const isMe = options.isMe;
       const cardCount = isMe ? myHand.length : player.cardCount;
-      return (
+      useEffect(() => {
+      if (!winner || lastWinnerRef.current == winner) return;
+      lastWinnerRef.current = winner;
+      pushFlyBanner(`G'OLIB!`);
+   }, [winner]);
+
+   return (
          <div className={`${slotClass} player-tile ${isActive ? 'active' : ''} ${options.compact ? 'compact' : ''} ${isMe ? 'me' : ''} ${cardCount === 1 ? 'hot-seat' : ''}`}>
             <div className="glass-chip">
                <div className="avatar-initials" style={{ background: player.avatarColor || 'rgba(0, 0, 0, 0.4)' }}>
@@ -474,8 +497,30 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
                {highlightNotice}
             </div>
          )}
-         {/* Corner Seating */}
-         {cornerSlots.map(({ slotClass, player }) => renderPlayerTile(player, slotClass))}
+         {flyBanners.length > 0 && (
+            <div className="fly-banner-layer">
+               {flyBanners.map(item => (
+                  <div key={item.id} className={item.text === 'UNO!' ? 'fly-banner uno' : 'fly-banner'}>
+                     {item.text}
+                  </div>
+               ))}
+            </div>
+         )}
+         {/* Side Seating */}
+         <div className="opponents-side left">
+            {leftOpponents.map(player => (
+               <div key={player.id} className="side-slot">
+                  {renderPlayerTile(player, '', { compact: true })}
+               </div>
+            ))}
+         </div>
+         <div className="opponents-side right">
+            {rightOpponents.map(player => (
+               <div key={player.id} className="side-slot">
+                  {renderPlayerTile(player, '', { compact: true })}
+               </div>
+            ))}
+         </div>
          {renderPlayerTile(mePlayer, 'seat-bottom-left', { isMe: true })}
 
          {/* Mobile strip fallback (if screened) */}
@@ -625,6 +670,7 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
          )}
 
          {/* HAND - Player 1 */}
+         {myId && (
          <div className="seat-bottom">
             <div className="hand-area">
                <Hand
@@ -664,6 +710,7 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
                </div>
             ) : null}
          </div>
+         )}
 
          {/* Color Picker & Winner Modals are same as before, but with better glass styling */}
          <AnimatePresence>
@@ -728,53 +775,74 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
 
          <AnimatePresence>
             {winner && (
-               <motion.div className="modal-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(30px)', zIndex: 6000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <div className="premium-box" style={{ padding: '48px', textAlign: 'center' }}>
-                     <h1 style={{ fontSize: '4rem', marginBottom: '16px' }}>🏆</h1>
-                     <h2 style={{ fontSize: '2.2rem', marginBottom: '20px', fontWeight: 800 }}>{winner} G‘OLIB!</h2>
-                     {gameSummary && (
-                        <div className="results-grid">
-                           {gameSummary.mvpName && (
-                              <div className="results-item results-full">
-                                 <span>MVP</span>
-                                 <strong>{gameSummary.mvpName}</strong>
-                                 <div className="results-list">
-                                    <div className="results-row">
-                                       <span>{gameSummary.mvpReason}</span>
+               <motion.div className="modal-overlay endgame-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                  <div className="endgame-celebration">
+                     <div className="endgame-glow" aria-hidden="true"></div>
+                     <div className="endgame-sparkles" aria-hidden="true">
+                        <span className="spark spark-1"></span>
+                        <span className="spark spark-2"></span>
+                        <span className="spark spark-3"></span>
+                        <span className="spark spark-4"></span>
+                        <span className="spark spark-5"></span>
+                        <span className="spark spark-6"></span>
+                     </div>
+                     <div className="endgame-confetti" aria-hidden="true">
+                        <span className="confetti c1"></span>
+                        <span className="confetti c2"></span>
+                        <span className="confetti c3"></span>
+                        <span className="confetti c4"></span>
+                        <span className="confetti c5"></span>
+                        <span className="confetti c6"></span>
+                        <span className="confetti c7"></span>
+                        <span className="confetti c8"></span>
+                     </div>
+                     <div className="premium-box endgame-card">
+                        <div className="endgame-trophy">KUBOK</div>
+                        <h2 style={{ fontSize: '2.2rem', marginBottom: '20px', fontWeight: 800 }}>{winner} G'OLIB!</h2>
+                        {gameSummary && (
+                           <div className="results-grid">
+                              {gameSummary.mvpName && (
+                                 <div className="results-item results-full">
+                                    <span>MVP</span>
+                                    <strong>{gameSummary.mvpName}</strong>
+                                    <div className="results-list">
+                                       <div className="results-row">
+                                          <span>{gameSummary.mvpReason}</span>
+                                       </div>
                                     </div>
                                  </div>
+                              )}
+                              <div className="results-item">
+                                 <span>O'yin davomiyligi</span>
+                                 <strong>{formatDuration(gameSummary.durationSeconds)}</strong>
                               </div>
-                           )}
-                           <div className="results-item">
-                              <span>O‘yin davomiyligi</span>
-                              <strong>{formatDuration(gameSummary.durationSeconds)}</strong>
-                           </div>
-                           <div className="results-item">
-                              <span>Umumiy yurishlar</span>
-                              <strong>{gameSummary.totalMoves}</strong>
-                           </div>
-                           <div className="results-item results-full">
-                              <span>Eng ko‘p karta olgan</span>
-                              <strong>
-                                 {gameSummary.mostDrawnPlayers?.length
-                                    ? `${gameSummary.mostDrawnPlayers.join(', ')} (${gameSummary.mostDrawnCount})`
-                                    : '-'}
-                              </strong>
-                           </div>
-                           <div className="results-item results-full">
-                              <span>Yakuniy kartalar</span>
-                              <div className="results-list">
-                                 {gameSummary.players?.map(player => (
-                                    <div key={player.id} className="results-row">
-                                       <span>{player.name}</span>
-                                       <span>{player.cardCount} ta</span>
-                                    </div>
-                                 ))}
+                              <div className="results-item">
+                                 <span>Umumiy yurishlar</span>
+                                 <strong>{gameSummary.totalMoves}</strong>
+                              </div>
+                              <div className="results-item results-full">
+                                 <span>Eng ko'p karta olgan</span>
+                                 <strong>
+                                    {gameSummary.mostDrawnPlayers?.length
+                                       ? `${gameSummary.mostDrawnPlayers.join(', ')} (${gameSummary.mostDrawnCount})`
+                                       : '-'}
+                                 </strong>
+                              </div>
+                              <div className="results-item results-full">
+                                 <span>Yakuniy kartalar</span>
+                                 <div className="results-list">
+                                    {gameSummary.players?.map(player => (
+                                       <div key={player.id} className="results-row">
+                                          <span>{player.name}</span>
+                                          <span>{player.cardCount} ta</span>
+                                       </div>
+                                    ))}
+                                 </div>
                               </div>
                            </div>
-                        </div>
-                     )}
-                     <button className="btn-glass btn-primary" onClick={onExit}>CHIQISH</button>
+                        )}
+                        <button className="btn-glass btn-primary" onClick={onExit}>CHIQISH</button>
+                     </div>
                   </div>
                </motion.div>
             )}
