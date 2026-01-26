@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSocket } from '../context/SocketContext';
 import { motion } from 'framer-motion';
 
@@ -22,8 +22,20 @@ const Home = () => {
    const [startCardsOpen, setStartCardsOpen] = useState(false);
    const [autoDrawEnabled, setAutoDrawEnabled] = useState(true);
    const [mode, setMode] = useState('menu');
+   const [nicknameNotice, setNicknameNotice] = useState('');
+   const [roomIdNotice, setRoomIdNotice] = useState('');
    const [avatarColor, setAvatarColor] = useState(avatarColors[0]);
    const [avatarIcon, setAvatarIcon] = useState(avatarIcons[0]);
+   
+   const showNicknameNotice = (message) => {
+      setNicknameNotice(message);
+      setTimeout(() => setNicknameNotice(''), 2000);
+   };
+
+   const showRoomIdNotice = (message) => {
+      setRoomIdNotice(message);
+      setTimeout(() => setRoomIdNotice(''), 2000);
+   };
 
    const clampStartCardsInput = (value) => {
       const parsed = Number.parseInt(value, 10);
@@ -32,14 +44,36 @@ const Home = () => {
    };
 
    const handleCreate = () => {
-      if (!nickname) return;
+      if (!nickname) {
+         showNicknameNotice("Ismingizni kiriting.");
+         return;
+      }
       socket.emit('room:create', { nickname, startCardsCount: startCards, autoDrawEnabled, avatarColor, avatarIcon });
    };
 
    const handleJoin = () => {
-      if (!nickname || !roomId) return;
+      if (!nickname) {
+         showNicknameNotice("Ismingizni kiriting.");
+         return;
+      }
+      if (!roomId) {
+         showRoomIdNotice("Xona ID kiriting.");
+         return;
+      }
       socket.emit('room:join', { nickname, roomId, avatarColor, avatarIcon });
    };
+
+   useEffect(() => {
+      if (!socket) return;
+      const onError = ({ message }) => {
+         if (mode !== 'join') return;
+         if (message === 'Xona topilmadi!') {
+            showRoomIdNotice("Bunday xona yo'q.");
+         }
+      };
+      socket.on('error:msg', onError);
+      return () => socket.off('error:msg', onError);
+   }, [socket, mode]);
 
    return (
       <motion.div
@@ -90,6 +124,7 @@ const Home = () => {
                         value={nickname}
                         onChange={e => setNickname(e.target.value)}
                      />
+                     {nicknameNotice && <div className="form-notice">{nicknameNotice}</div>}
                   </div>
                   <div className="home-avatar-preview">
                      <div className="avatar-preview" style={{ background: avatarColor }}>
@@ -213,6 +248,7 @@ const Home = () => {
                         value={nickname}
                         onChange={e => setNickname(e.target.value)}
                      />
+                     {nicknameNotice && <div className="form-notice">{nicknameNotice}</div>}
                   </div>
                   <div className="home-avatar-preview">
                      <div className="avatar-preview" style={{ background: avatarColor }}>
@@ -264,6 +300,7 @@ const Home = () => {
                      value={roomId}
                      onChange={e => setRoomId(e.target.value.replace(/[^0-9]/g, ''))}
                   />
+                  {roomIdNotice && <div className="form-notice">{roomIdNotice}</div>}
                </div>
                <div className="form-row">
                   <button className="btn-glass btn-primary" onClick={handleJoin}>XONAGA KIRISH</button>
