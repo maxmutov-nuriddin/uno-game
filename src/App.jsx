@@ -181,6 +181,11 @@ function Content() {
 }
 
 function App() {
+  useEffect(() => {
+    const storedTheme = localStorage.getItem('uno_theme') || 'dark';
+    document.documentElement.dataset.theme = storedTheme;
+  }, []);
+
   return (
     <SocketProvider>
       <div className="app-container">

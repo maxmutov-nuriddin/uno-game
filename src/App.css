@@ -27,6 +27,109 @@
   --table-line: rgba(255, 255, 255, 0.04);
 }
 
+:root[data-theme="light"] {
+  --bg-dark: #f3f4f6;
+  --glass-panel: rgba(0, 0, 0, 0.04);
+  --glass-border: 1px solid rgba(0, 0, 0, 0.08);
+  --backdrop-blur: 16px;
+  --glass-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --table-edge: rgba(0, 0, 0, 0.08);
+  --table-line: rgba(0, 0, 0, 0.04);
+}
+
+:root[data-theme="light"] body {
+  background-color: #f1f2f4;
+  background-image:
+    radial-gradient(circle at 0% 0%, rgba(255, 218, 76, 0.22) 0%, transparent 60%),
+    radial-gradient(circle at 100% 100%, rgba(12, 158, 217, 0.14) 0%, transparent 50%);
+  color: #111;
+}
+
+:root[data-theme="light"] .premium-box,
+:root[data-theme="light"] .glass-chip,
+:root[data-theme="light"] .btn-glass,
+:root[data-theme="light"] .btn-pill,
+:root[data-theme="light"] .input-group input[type="text"],
+:root[data-theme="light"] .select-trigger,
+:root[data-theme="light"] .select-panel,
+:root[data-theme="light"] .select-panel input,
+:root[data-theme="light"] .settings-modal {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  color: #111;
+}
+
+:root[data-theme="light"] .btn-glass.btn-secondary {
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+:root[data-theme="light"] .btn-glass.btn-primary {
+  color: #111;
+}
+
+:root[data-theme="light"] .btn-pill,
+:root[data-theme="light"] .reaction-btn,
+:root[data-theme="light"] .select-option,
+:root[data-theme="light"] .toggle-btn {
+  color: #111;
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+:root[data-theme="light"] .reaction-panel {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+:root[data-theme="light"] .input-group label,
+:root[data-theme="light"] .home-kicker,
+:root[data-theme="light"] .home-stats small,
+:root[data-theme="light"] .lobby-room-label,
+:root[data-theme="light"] .player-ready {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+:root[data-theme="light"] .logo {
+  color: #111;
+}
+
+:root[data-theme="light"] .logo::after {
+  background: #e11d48;
+}
+
+:root[data-theme="light"] .home-tagline,
+:root[data-theme="light"] .opp-name,
+:root[data-theme="light"] .player-name-lobby,
+:root[data-theme="light"] .lobby-room-id {
+  color: rgba(0, 0, 0, 0.7);
+}
+
+:root[data-theme="light"] .player-tile .glass-chip {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+:root[data-theme="light"] .game-table::before {
+  background:
+    radial-gradient(600px 320px at 50% 40%, color-mix(in srgb, var(--theme-color) 12%, transparent), transparent 70%),
+    linear-gradient(160deg, rgba(245, 245, 245, 0.96), rgba(230, 230, 230, 0.9));
+}
+
+:root[data-theme="light"] .turn-toast,
+:root[data-theme="light"] .reaction-sent,
+:root[data-theme="light"] .mobile-event-item,
+:root[data-theme="light"] .reaction-pop {
+  background: rgba(255, 255, 255, 0.85);
+  color: #111;
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+:root[data-theme="light"] .form-notice {
+  background: rgba(255, 23, 68, 0.08);
+  color: #b71c1c;
+}
+
 body {
   margin: 0;
   background-color: #080808;
@@ -1084,6 +1187,60 @@ body {
   letter-spacing: 0.3px;
 }
 
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9000;
+  padding: 20px;
+}
+
+.settings-modal {
+  width: min(360px, 92vw);
+  padding: 20px;
+  border-radius: 18px;
+  background: rgba(18, 20, 24, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  display: grid;
+  gap: 16px;
+}
+
+.settings-title {
+  font-size: 0.9rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.9rem;
+}
+
+.toggle-btn {
+  min-width: 56px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.toggle-btn.active {
+  background: rgba(0, 230, 118, 0.2);
+  border-color: rgba(0, 230, 118, 0.6);
+  color: #00e676;
+}
+
 .btn-glass {
   width: 100%;
   padding: 12px 16px;
@@ -1535,7 +1692,7 @@ body {
     transform: translateX(-50%);
     display: flex;
     width: min(100%, 560px);
-    padding: 0 10px;
+    padding: 2px 10px;
     box-sizing: border-box;
     gap: 10px;
     z-index: 4;
