@@ -22,6 +22,10 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
       lastActionId,
       lastActionType,
       turnDeadline,
+      lastPlayEvent,
+      lastPlayId,
+      highlightEvent,
+      highlightEventId,
    } = gameState;
 
    const [modalOpen, setModalOpen] = useState(false);
@@ -36,6 +40,8 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
    const [sentReaction, setSentReaction] = useState('');
    const [reactionOpen, setReactionOpen] = useState(false);
    const [turnRemaining, setTurnRemaining] = useState(0);
+   const [momentReplay, setMomentReplay] = useState(null);
+   const [highlightNotice, setHighlightNotice] = useState('');
 
    const isMyTurn = turnPlayerId === myId;
    const showPassAfterDraw = justDrewPlayablePlayerId === myId;
@@ -49,6 +55,8 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
    const lastNoticeActionId = useRef(0);
    const mobileEventTimers = useRef(new Map());
    const reactionPanelRef = useRef(null);
+   const highlightTimer = useRef(null);
+   const replayTimer = useRef(null);
    const opponents = players.filter(p => p.id !== myId);
    const mePlayer = players.find(p => p.id === myId);
    const reactionEmojis = ['\ud83d\udd25', '\ud83d\ude02', '\ud83d\ude0e'];
@@ -329,6 +337,41 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
       });
    }, [turnPlayerId, players]);
 
+   useEffect(() => {
+      if (!highlightEventId || !highlightEvent) return;
+      const player = players.find(p => p.id === highlightEvent.playerId);
+      if (!player) return;
+      const message = highlightEvent.type === 'streak'
+         ? `Olov: ${player.name}`
+         : `Comeback: ${player.name}`;
+      setHighlightNotice(message);
+      pushMobileEvent({
+         id: `highlight-${highlightEventId}-${Date.now()}`,
+         type: 'highlight',
+         playerId: highlightEvent.playerId,
+         message
+      });
+      if (highlightTimer.current) {
+         clearTimeout(highlightTimer.current);
+      }
+      highlightTimer.current = setTimeout(() => {
+         setHighlightNotice('');
+         highlightTimer.current = null;
+      }, 1800);
+   }, [highlightEventId, highlightEvent, players]);
+
+   useEffect(() => {
+      if (!lastPlayId || !lastPlayEvent) return;
+      setMomentReplay(lastPlayEvent);
+      if (replayTimer.current) {
+         clearTimeout(replayTimer.current);
+      }
+      replayTimer.current = setTimeout(() => {
+         setMomentReplay(null);
+         replayTimer.current = null;
+      }, 1500);
+   }, [lastPlayId, lastPlayEvent]);
+
    const renderPlayerTile = (player, slotClass, options = {}) => {
       if (!player) return null;
       const isActive = player.id === turnPlayerId;
@@ -382,6 +425,13 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
                   <div className="reaction-pop">{reactions.get(player.id)}</div>
                )}
             </div>
+            {momentReplay && momentReplay.playerId === player.id && (
+               <div className="moment-replay">
+                  <div className="moment-card">
+                     <Card card={momentReplay.card} size="small" />
+                  </div>
+               </div>
+            )}
          </div>
       );
    };
@@ -407,16 +457,21 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
                         ? entry.emoji
                         : entry.message}
                </span>
-           </div>
-        </div>
-     );
+            </div>
+         </div>
+      );
    };
 
    return (
       <div className="game-table" style={{ '--theme-color': currentColor ? `var(--c-${currentColor})` : 'rgba(255,255,255,0.12)' }}>
          {turnNotice && (
-            <div className="turn-toast">
+            <div className="turn-toast turn-toast-right">
                Navbat: {turnNotice}
+            </div>
+         )}
+         {highlightNotice && (
+            <div className="turn-toast highlight-toast">
+               {highlightNotice}
             </div>
          )}
          {/* Corner Seating */}
@@ -679,6 +734,17 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
                      <h2 style={{ fontSize: '2.2rem', marginBottom: '20px', fontWeight: 800 }}>{winner} G‘OLIB!</h2>
                      {gameSummary && (
                         <div className="results-grid">
+                           {gameSummary.mvpName && (
+                              <div className="results-item results-full">
+                                 <span>MVP</span>
+                                 <strong>{gameSummary.mvpName}</strong>
+                                 <div className="results-list">
+                                    <div className="results-row">
+                                       <span>{gameSummary.mvpReason}</span>
+                                    </div>
+                                 </div>
+                              </div>
+                           )}
                            <div className="results-item">
                               <span>O‘yin davomiyligi</span>
                               <strong>{formatDuration(gameSummary.durationSeconds)}</strong>

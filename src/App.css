@@ -515,6 +515,21 @@ body {
   letter-spacing: 4px;
 }
 
+.lobby-room-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.lobby-copy {
+  width: auto;
+  padding: 8px 14px;
+  font-size: 0.75rem;
+  letter-spacing: 1px;
+}
+
 .player-list-lobby {
   text-align: left;
 }
@@ -1406,15 +1421,71 @@ body {
   transform: translate(-50%, -50%);
   padding: 8px 18px;
   border-radius: 999px;
-  background: rgba(10, 10, 10, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(10, 10, 10, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   color: #fff;
   font-weight: 700;
   letter-spacing: 0.3px;
   z-index: 3000;
   pointer-events: none;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45), 0 0 18px rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(6px);
+}
+
+.highlight-toast {
+  margin-top: 44px;
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45), 0 0 22px rgba(255, 87, 34, 0.25);
+}
+
+.highlight-toast::after {
+  content: "🔥";
+  margin-left: 8px;
+  font-size: 0.9rem;
+}
+
+.turn-toast-right {
+  top: 20px;
+  left: auto;
+  right: 18px;
+  transform: none;
+}
+
+.turn-toast-right::before {
+  inset: -5px;
+}
+
+.turn-toast::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.18), transparent 70%);
+  z-index: -1;
+}
+
+.highlight-toast::before {
+  background: radial-gradient(circle, rgba(255, 87, 34, 0.35), transparent 70%);
+}
+
+.moment-replay {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(8px);
+  z-index: 8;
+}
+
+.moment-card .card-wrapper.small {
+  width: 48px;
+  height: 68px;
 }
 
 .turn-timer {

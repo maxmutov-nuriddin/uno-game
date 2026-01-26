@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSocket } from '../context/SocketContext';
 import { motion } from 'framer-motion';
 
@@ -8,6 +8,7 @@ const Lobby = ({ gameState, lobbyState }) => {
    const { roomId, isAdmin } = lobbyState;
    const allReady = players.length >= 2 && players.every(p => p.ready);
    const mePlayer = players.find(p => p.id === lobbyState.myId);
+   const [copied, setCopied] = useState(false);
    const adminReady = isAdmin && !!mePlayer?.ready;
 
    const handleStart = () => {
@@ -22,6 +23,17 @@ const Lobby = ({ gameState, lobbyState }) => {
       socket.emit('player:ready', { isReady: !mePlayer?.ready });
    };
 
+   const handleCopyRoomId = async () => {
+      if (!roomId) return;
+      try {
+         await navigator.clipboard.writeText(roomId);
+         setCopied(true);
+         setTimeout(() => setCopied(false), 1500);
+      } catch (e) {
+         setCopied(false);
+      }
+   };
+
    return (
       <motion.div
          initial={{ opacity: 0, scale: 0.9, y: 30 }}
@@ -31,7 +43,12 @@ const Lobby = ({ gameState, lobbyState }) => {
       >
          <div>
             <div className="lobby-room-label">XONA ID</div>
-            <h2 className="lobby-room-id">{roomId}</h2>
+            <div className="lobby-room-row">
+               <h2 className="lobby-room-id">{roomId}</h2>
+               <button className="btn-glass btn-secondary lobby-copy" onClick={handleCopyRoomId}>
+                  {copied ? 'COPIED' : 'COPY'}
+               </button>
+            </div>
          </div>
 
          <div className="player-list-lobby">
