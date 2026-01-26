@@ -26,6 +26,23 @@ const Home = () => {
    const [roomIdNotice, setRoomIdNotice] = useState('');
    const [avatarColor, setAvatarColor] = useState(avatarColors[0]);
    const [avatarIcon, setAvatarIcon] = useState(avatarIcons[0]);
+   const randomNicknames = [
+      'Jonim',
+      'Momiqcha',
+      'Okenmako',
+      'Janob',
+      'Hechkim',
+      'Qadrdon',
+      'Kulgich',
+      'Samuray',
+      'Soya',
+      'Sevinch',
+      'Shodlik',
+      'Ravshan',
+      'Sabo',
+      'Tinch',
+      'Uzunyo'
+   ];
    
    const showNicknameNotice = (message) => {
       setNicknameNotice(message);
@@ -41,6 +58,11 @@ const Home = () => {
       const parsed = Number.parseInt(value, 10);
       if (Number.isNaN(parsed)) return 8;
       return Math.min(12, Math.max(8, parsed));
+   };
+
+   const generateRandomName = () => {
+      const name = randomNicknames[Math.floor(Math.random() * randomNicknames.length)];
+      setNickname(name.slice(0, 15));
    };
 
    const handleCreate = () => {
@@ -119,12 +141,18 @@ const Home = () => {
                <div className="form-header">
                   <div className="input-group">
                      <label>NICKNAME</label>
-                     <input
-                        type="text"
-                        placeholder="Ismingiz..."
-                        value={nickname}
-                        onChange={e => setNickname(e.target.value)}
-                     />
+                     <div className="nickname-row">
+                        <input
+                           type="text"
+                           placeholder="Ismingiz..."
+                           value={nickname}
+                           onChange={e => setNickname(e.target.value.slice(0, 15))}
+                           maxLength={15}
+                        />
+                        <button type="button" className="btn-glass btn-secondary nickname-random" onClick={generateRandomName} aria-label="Random nickname">
+                           {'\ud83c\udfb2'}
+                        </button>
+                     </div>
                      {nicknameNotice && <div className="form-notice">{nicknameNotice}</div>}
                   </div>
                   <div className="home-avatar-preview">
@@ -243,12 +271,18 @@ const Home = () => {
                <div className="form-header">
                   <div className="input-group">
                      <label>NICKNAME</label>
-                     <input
-                        type="text"
-                        placeholder="Ismingiz..."
-                        value={nickname}
-                        onChange={e => setNickname(e.target.value)}
-                     />
+                     <div className="nickname-row">
+                        <input
+                           type="text"
+                           placeholder="Ismingiz..."
+                           value={nickname}
+                           onChange={e => setNickname(e.target.value.slice(0, 15))}
+                           maxLength={15}
+                        />
+                        <button type="button" className="btn-glass btn-secondary nickname-random" onClick={generateRandomName} aria-label="Random nickname">
+                           {'\ud83c\udfb2'}
+                        </button>
+                     </div>
                      {nicknameNotice && <div className="form-notice">{nicknameNotice}</div>}
                   </div>
                   <div className="home-avatar-preview">

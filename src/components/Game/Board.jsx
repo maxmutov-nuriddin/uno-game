@@ -21,6 +21,7 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
       justDrewPlayablePlayerId,
       lastActionId,
       lastActionType,
+      turnDeadline,
    } = gameState;
 
    const [modalOpen, setModalOpen] = useState(false);
@@ -34,6 +35,7 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
    const [rulesOpen, setRulesOpen] = useState(false);
    const [sentReaction, setSentReaction] = useState('');
    const [reactionOpen, setReactionOpen] = useState(false);
+   const [turnRemaining, setTurnRemaining] = useState(0);
 
    const isMyTurn = turnPlayerId === myId;
    const showPassAfterDraw = justDrewPlayablePlayerId === myId;
@@ -172,6 +174,20 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
       setSelectedIds(prev => prev.filter(id => myHand.some(card => card.id === id)));
    }, [myHand]);
 
+   useEffect(() => {
+      if (!turnDeadline) {
+         setTurnRemaining(0);
+         return;
+      }
+      const tick = () => {
+         const remaining = Math.max(0, Math.ceil((turnDeadline - Date.now()) / 1000));
+         setTurnRemaining(remaining);
+      };
+      tick();
+      const timer = setInterval(tick, 250);
+      return () => clearInterval(timer);
+   }, [turnDeadline]);
+
    const pushMobileEvent = (entry) => {
       setMobileEvents(prev => {
          const next = [...prev, entry];
@@ -300,6 +316,19 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
       };
    }, [lastActionId, lastActionType, turnPlayerId, players]);
 
+   useEffect(() => {
+      if (!turnPlayerId) return;
+      const player = players.find(p => p.id === turnPlayerId);
+      if (!player) return;
+      if (player.isOnline) return;
+      pushMobileEvent({
+         id: `${player.id}-offline-${Date.now()}`,
+         type: 'status',
+         playerId: player.id,
+         message: "o'yinchi offlayn"
+      });
+   }, [turnPlayerId, players]);
+
    const renderPlayerTile = (player, slotClass, options = {}) => {
       if (!player) return null;
       const isActive = player.id === turnPlayerId;
@@ -372,11 +401,15 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
             <div className="mobile-event-text">
                <span className="mobile-event-name">{player.name}</span>
                <span className="mobile-event-message">
-                  {entry.type === 'uno' ? 'UNO!' : entry.emoji}
+                  {entry.type === 'uno'
+                     ? 'UNO!'
+                     : entry.type === 'reaction'
+                        ? entry.emoji
+                        : entry.message}
                </span>
-            </div>
-         </div>
-      );
+           </div>
+        </div>
+     );
    };
 
    return (
@@ -530,6 +563,11 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
                )}
             </div>
          </div>
+         {turnRemaining > 0 && (
+            <div className="turn-timer">
+               {turnRemaining}s
+            </div>
+         )}
 
          {/* HAND - Player 1 */}
          <div className="seat-bottom">
