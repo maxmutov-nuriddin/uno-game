@@ -18,10 +18,18 @@ const Home = () => {
    const [nickname, setNickname] = useState('');
    const [roomId, setRoomId] = useState('');
    const [startCards, setStartCards] = useState(7);
+   const [startCardsInput, setStartCardsInput] = useState('7');
+   const [startCardsOpen, setStartCardsOpen] = useState(false);
    const [autoDrawEnabled, setAutoDrawEnabled] = useState(true);
    const [mode, setMode] = useState('menu');
    const [avatarColor, setAvatarColor] = useState(avatarColors[0]);
    const [avatarIcon, setAvatarIcon] = useState(avatarIcons[0]);
+
+   const clampStartCardsInput = (value) => {
+      const parsed = Number.parseInt(value, 10);
+      if (Number.isNaN(parsed)) return 8;
+      return Math.min(12, Math.max(8, parsed));
+   };
 
    const handleCreate = () => {
       if (!nickname) return;
@@ -124,13 +132,58 @@ const Home = () => {
                   </div>
                </div>
                <div className="input-group" style={{ margin: '20px 0' }}>
-                  <label>BOSHLANG'ICH KARTALAR: {startCards}</label>
-                  <input
-                     type="range" min="5" max="10"
-                     style={{ width: '100%', accentColor: 'var(--primary)' }}
-                     value={startCards}
-                     onChange={e => setStartCards(e.target.value)}
-                  />
+                  <label>BOSHLANG'ICH KARTALAR</label>
+                  <div className="select-field">
+                     <button
+                        type="button"
+                        className="select-trigger"
+                        onClick={() => {
+                           setStartCardsInput(String(Math.max(8, startCards)));
+                           setStartCardsOpen(prev => !prev);
+                        }}
+                     >
+                        {startCards}
+                        <span className="select-caret">v</span>
+                     </button>
+                     {startCardsOpen && (
+                        <div className="select-panel">
+                           <input
+                              type="text"
+                              inputMode="numeric"
+                              pattern="[0-9]*"
+                              value={startCardsInput}
+                              onChange={e => {
+                                 const nextValue = e.target.value.replace(/[^0-9]/g, '');
+                                 if (nextValue.length === 0 || nextValue.length <= 2) {
+                                    setStartCardsInput(nextValue);
+                                 }
+                              }}
+                              onBlur={() => {
+                                 const next = clampStartCardsInput(startCardsInput);
+                                 setStartCards(next);
+                                 setStartCardsInput(String(next));
+                              }}
+                              placeholder="8-12"
+                           />
+                           <div className="select-options">
+                              {[4, 5, 6, 7].map(value => (
+                                 <button
+                                    key={value}
+                                    type="button"
+                                    className="select-option"
+                                    onClick={() => {
+                                       setStartCards(value);
+                                       setStartCardsInput(String(value));
+                                       setStartCardsOpen(false);
+                                    }}
+                                 >
+                                    {value}
+                                 </button>
+                              ))}
+                           </div>
+                        </div>
+                     )}
+                  </div>
                </div>
                <div className="input-group" style={{ margin: '20px 0' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
