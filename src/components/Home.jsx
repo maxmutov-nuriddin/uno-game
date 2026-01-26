@@ -24,8 +24,6 @@ const Home = () => {
    const [mode, setMode] = useState('menu');
    const [nicknameNotice, setNicknameNotice] = useState('');
    const [roomIdNotice, setRoomIdNotice] = useState('');
-   const [settingsOpen, setSettingsOpen] = useState(false);
-   const [themeMode, setThemeMode] = useState('dark');
    const [avatarColor, setAvatarColor] = useState(avatarColors[0]);
    const [avatarIcon, setAvatarIcon] = useState(avatarIcons[0]);
    
@@ -77,18 +75,6 @@ const Home = () => {
       return () => socket.off('error:msg', onError);
    }, [socket, mode]);
 
-   useEffect(() => {
-      const storedTheme = localStorage.getItem('uno_theme') || 'dark';
-      setThemeMode(storedTheme);
-      document.documentElement.dataset.theme = storedTheme;
-   }, []);
-
-   const toggleTheme = () => {
-      const nextTheme = themeMode === 'light' ? 'dark' : 'light';
-      setThemeMode(nextTheme);
-      localStorage.setItem('uno_theme', nextTheme);
-      document.documentElement.dataset.theme = nextTheme;
-   };
 
    return (
       <motion.div
@@ -125,7 +111,6 @@ const Home = () => {
             <div className="menu-buttons home-actions">
                <button className="btn-glass btn-primary" onClick={() => setMode('create')}>XONA YARATISH</button>
                <button className="btn-glass btn-secondary" onClick={() => setMode('join')}>QO'SHILISH</button>
-               <button className="btn-glass btn-secondary" onClick={() => setSettingsOpen(true)}>SOZLAMALAR</button>
             </div>
          )}
 
@@ -325,26 +310,6 @@ const Home = () => {
             </motion.div>
          )}
 
-         {settingsOpen && (
-            <div className="settings-overlay" onClick={() => setSettingsOpen(false)}>
-               <div className="settings-modal" onClick={e => e.stopPropagation()}>
-                  <div className="settings-title">SOZLAMALAR</div>
-                  <label className="settings-row">
-                     <span>YORUG' REJIM</span>
-                     <button
-                        type="button"
-                        className={`toggle-btn ${themeMode === 'light' ? 'active' : ''}`}
-                        onClick={toggleTheme}
-                     >
-                        {themeMode === 'light' ? 'ON' : 'OFF'}
-                     </button>
-                  </label>
-                  <button className="btn-glass btn-secondary" onClick={() => setSettingsOpen(false)}>
-                     YOPISH
-                  </button>
-               </div>
-            </div>
-         )}
       </motion.div>
    );
 };
