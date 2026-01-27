@@ -43,9 +43,10 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
    const [momentReplay, setMomentReplay] = useState(null);
    const [highlightNotice, setHighlightNotice] = useState('');
    const [flyBanners, setFlyBanners] = useState([]);
+   const [soundsEnabled, setSoundsEnabled] = useState(true);
 
    const isMyTurn = turnPlayerId === myId;
-   const showPassAfterDraw = !!myId && justDrewPlayablePlayerId === myId;
+   const showPassAfterDraw = !!myId && justDrewPlayablePlayerId === myId && isMyTurn;
    const showUnoButton = !!myId && pendingUnoIds?.includes(myId);
    const hasUnoPending = (playerId) => unoFlashIds.has(playerId);
    const lastAutoDrawTurn = useRef(null);
@@ -60,6 +61,7 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
    const replayTimer = useRef(null);
    const flyTimers = useRef(new Map());
    const lastWinnerRef = useRef(null);
+   const soundMapRef = useRef({});
    const opponents = players.filter(p => p.id !== myId);
    const mePlayer = players.find(p => p.id === myId);
    const splitIndex = Math.ceil(opponents.length / 2);
@@ -81,6 +83,55 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
       flyTimers.current.set(id, timerId);
    };
 
+   const soundFiles = {
+      'not-card': '/sfx/not-card.mp3',
+      'go-card': '/sfx/go-card.mp3',
+      'uno': '/sfx/uno.mp3'
+   };
+
+   const stopSound = (key) => {
+      const audio = soundMapRef.current[key];
+      if (!audio) return;
+      try {
+         audio.pause();
+         audio.currentTime = 0;
+      } catch (e) {
+         // ignore
+      }
+   };
+
+   const playSound = (key) => {
+      if (!soundsEnabled) return;
+      const src = soundFiles[key];
+      if (!src) return;
+      try {
+         if (key === 'go-card') {
+            const audio = new Audio(src);
+            audio.preload = 'auto';
+            audio.volume = 0.7;
+            const playPromise = audio.play();
+            if (playPromise && typeof playPromise.catch == 'function') {
+               playPromise.catch(() => {});
+            }
+            return;
+         }
+         let audio = soundMapRef.current[key];
+         if (!audio) {
+            audio = new Audio(src);
+            audio.preload = 'auto';
+            audio.volume = 0.7;
+            soundMapRef.current[key] = audio;
+         }
+         audio.currentTime = 0;
+         const playPromise = audio.play();
+         if (playPromise && typeof playPromise.catch == 'function') {
+            playPromise.catch(() => {});
+         }
+      } catch (e) {
+         // ignore sound errors
+      }
+   };
+
    const formatDuration = (seconds = 0) => {
       const mins = Math.floor(seconds / 60);
       const secs = seconds % 60;
@@ -100,6 +151,8 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
          return;
       }
 
+      stopSound('not-card');
+      playSound('go-card');
       socket.emit('game:play', { cardId: selectedCard.id, chosenColor: null });
       clearSelection();
    };
@@ -116,7 +169,10 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
       }
 
       if (selectedIds.length === 0) {
-         if (!canPlayCard(card)) return;
+         if (!canPlayCard(card)) {
+         playSound('not-card');
+         return;
+      }
          setSelectedIds([card.id]);
          return;
       }
@@ -126,7 +182,11 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
          return;
       }
 
-      if (!canPlayCard(card)) return;
+      if (!canPlayCard(card)) {
+         playSound('not-card');
+         return;
+      }
+      stopSound('not-card');
       setSelectedIds([card.id]);
    };
 
@@ -149,6 +209,23 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
       }
       return false;
    };
+
+   useEffect(() => {
+      try {
+         const stored = localStorage.getItem('uno_sound');
+         if (stored === 'off') setSoundsEnabled(false);
+      } catch (e) {
+         // ignore
+      }
+   }, []);
+
+   useEffect(() => {
+      try {
+         localStorage.setItem('uno_sound', soundsEnabled ? 'on' : 'off');
+      } catch (e) {
+         // ignore
+      }
+   }, [soundsEnabled]);
 
    useEffect(() => {
       if (typeof window === 'undefined') return;
@@ -624,6 +701,9 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
             <button className="btn-pill btn-secondary" onClick={() => setRulesOpen(true)}>
                QOIDALAR
             </button>
+            <button className="btn-pill btn-secondary" onClick={() => setSoundsEnabled(prev => !prev)}>
+               {soundsEnabled ? 'SOUND ON' : 'SOUND OFF'}
+            </button>
             <div className="reaction-bar" ref={reactionPanelRef}>
                {sentReaction && <div className="reaction-sent">Yuborildi {sentReaction}</div>}
                <button
@@ -703,7 +783,10 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
                      </button>
                   )}
                   {showUnoButton && (
-                     <button className="btn-pill uno-call-btn" onClick={() => socket.emit('game:uno')}>
+                     <button className="btn-pill uno-call-btn" onClick={() => {
+                        playSound('uno');
+                        socket.emit('game:uno');
+                     }}>
                         UNO!
                      </button>
                   )}
@@ -724,9 +807,13 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
                               key={c}
                               onClick={() => {
                                  if (pendingCardIds.length > 1) {
+                                    stopSound('not-card');
+                                    playSound('go-card');
                                     socket.emit('game:play', { cardIds: pendingCardIds, chosenColor: c });
                                  } else {
-                                    socket.emit('game:play', { cardId: pendingCardIds[0], chosenColor: c });
+                                    stopSound('not-card');
+                                 playSound('go-card');
+                                 socket.emit('game:play', { cardId: pendingCardIds[0], chosenColor: c });
                                  }
                                  clearSelection();
                                  setPendingCardIds([]);
