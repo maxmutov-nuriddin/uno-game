@@ -13,6 +13,7 @@ const Hand = ({
    pendingDrawPlayerId = null,
    myId = null
 }) => {
+   const MotionDiv = motion.div;
    const [isCoarsePointer, setIsCoarsePointer] = useState(false);
 
    useEffect(() => {

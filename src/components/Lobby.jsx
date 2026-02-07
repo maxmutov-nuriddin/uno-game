@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { useSocket } from '../context/SocketContext';
+import { useSocket } from '../context/useSocket';
 import { motion } from 'framer-motion';
 
 const Lobby = ({ gameState, lobbyState }) => {
+   const MotionDiv = motion.div;
    const socket = useSocket();
    const { players } = gameState || { players: [] };
    const { roomId, isAdmin } = lobbyState;
@@ -30,7 +31,7 @@ const Lobby = ({ gameState, lobbyState }) => {
          await navigator.clipboard.writeText(roomId);
          setCopied(true);
          setTimeout(() => setCopied(false), 1500);
-      } catch (e) {
+      } catch {
          try {
             const tempInput = document.createElement('input');
             tempInput.value = roomId;
@@ -43,7 +44,7 @@ const Lobby = ({ gameState, lobbyState }) => {
             document.body.removeChild(tempInput);
             setCopied(!!ok);
             if (ok) setTimeout(() => setCopied(false), 1500);
-         } catch (err) {
+         } catch {
             setCopied(false);
          }
       }
@@ -98,7 +99,7 @@ const Lobby = ({ gameState, lobbyState }) => {
             {isAdmin ? (
                <div className="form-row">
                   {!isSpectatorAdmin && (
-                     <button className="btn-glass btn-secondary ${mePlayer?.ready ? '' : 'btn-ready'}" onClick={handleReadyToggle}>
+                     <button className={`btn-glass btn-secondary ${mePlayer?.ready ? '' : 'btn-ready'}`} onClick={handleReadyToggle}>
                         {mePlayer?.ready ? 'TAYYOR' : 'TAYYORMAN'}
                      </button>
                   )}

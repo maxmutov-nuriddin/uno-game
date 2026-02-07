@@ -1,26 +1,42 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { io } from 'socket.io-client';
-
-const SocketContext = createContext();
-
-export const useSocket = () => useContext(SocketContext);
-
-// Change this to your server IP for actual LAN, for localhost testing use localhost
-// For LAN usage, user must know the server IP.
-// Simplification: We assume localhost for now or window.location.hostname
-const SOCKET_URL = `http://${window.location.hostname}:3000`;
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { createFirebaseSocket } from '../services/firebaseSocket';
+import { NETWORK_MODES, getStoredNetworkMode, setStoredNetworkMode } from '../services/onlineSocketResolver';
+import { SocketContext } from './socketContextValue';
 
 export const SocketProvider = ({ children }) => {
-   const [socket, setSocket] = useState(null);
+   const [networkMode, setNetworkModeState] = useState(() => getStoredNetworkMode());
 
    useEffect(() => {
-      const newSocket = io(SOCKET_URL);
-      setSocket(newSocket);
-      return () => newSocket.close();
+      setStoredNetworkMode(networkMode);
+   }, [networkMode]);
+
+   const socket = useMemo(() => createFirebaseSocket(), []);
+
+   useEffect(() => {
+      return () => {
+         socket.close();
+      };
+   }, [socket]);
+
+   const setNetworkMode = useCallback((nextMode) => {
+      if (nextMode !== NETWORK_MODES.LAN && nextMode !== NETWORK_MODES.ONLINE) return;
+      setNetworkModeState(nextMode);
    }, []);
 
+   const setOnlineSocketUrl = useCallback(() => '', []);
+
    return (
-      <SocketContext.Provider value={socket}>
+      <SocketContext.Provider
+         value={{
+            socket,
+            networkMode,
+            setNetworkMode,
+            resolvedSocketUrl: 'firebase',
+            isResolvingNetwork: false,
+            onlineSocketUrlInput: '',
+            setOnlineSocketUrl
+         }}
+      >
          {children}
       </SocketContext.Provider>
    );

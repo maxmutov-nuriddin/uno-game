@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 const Card = ({ card, onClick, playable = false, size = 'normal' }) => {
+   const MotionDiv = motion.div;
    // size: 'normal' | 'small' | 'large'
 
    // Helper to get image path

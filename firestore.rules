@@ -1,0 +1,10 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Demo rules for the UNO room store.
+    // Tighten these rules before production use.
+    match /rooms/{roomId} {
+      allow read, write: if true;
+    }
+  }
+}

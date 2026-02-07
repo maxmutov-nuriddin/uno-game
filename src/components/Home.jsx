@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useSocket } from '../context/SocketContext';
+import { useSocket, useSocketControls } from '../context/useSocket';
+import { NETWORK_MODES } from '../services/onlineSocketResolver';
 import { motion } from 'framer-motion';
 
 const Home = () => {
    const socket = useSocket();
+   const { setNetworkMode, isResolvingNetwork } = useSocketControls();
    const avatarColors = ['#ff5252', '#ffb300', '#00c853', '#29b6f6', '#ab47bc', '#ff7043', '#26a69a', '#5c6bc0'];
    const avatarIcons = [
       '\ud83d\ude0e',
@@ -27,6 +29,7 @@ const Home = () => {
    const [roomIdNotice, setRoomIdNotice] = useState('');
    const [avatarColor, setAvatarColor] = useState(avatarColors[0]);
    const [avatarIcon, setAvatarIcon] = useState(avatarIcons[0]);
+   const MotionDiv = motion.div;
    const randomNicknames = [
       'Jonim',
       'Momiqcha',
@@ -66,22 +69,40 @@ const Home = () => {
       setNickname(name.slice(0, 15));
    };
 
+   const ensureTransportReady = () => {
+      if (isResolvingNetwork) {
+         showRoomIdNotice('Ulanish sozlanmoqda, biroz kuting.');
+         return false;
+      }
+      if (!socket) {
+         showRoomIdNotice("Serverga ulanib bo'lmadi.");
+         return false;
+      }
+      return true;
+   };
+
    const handleCreate = () => {
-      if (entryMode !== 'lan' && !nickname) {
+      if (!ensureTransportReady()) return;
+      const selectedNetworkMode = entryMode === 'online' ? NETWORK_MODES.ONLINE : NETWORK_MODES.LAN;
+      const requiresNickname = selectedNetworkMode !== NETWORK_MODES.LAN;
+      if (requiresNickname && !nickname.trim()) {
          showNicknameNotice("Ismingizni kiriting.");
          return;
       }
+      setNetworkMode(selectedNetworkMode);
       socket.emit('room:create', {
-         nickname,
+         nickname: requiresNickname ? nickname : '',
          startCardsCount: startCards,
          autoDrawEnabled,
          avatarColor,
          avatarIcon,
-         hostSpectator: entryMode === 'lan'
+         networkMode: selectedNetworkMode,
+         hostSpectator: selectedNetworkMode === NETWORK_MODES.LAN
       });
    };
 
    const handleJoin = () => {
+      if (!ensureTransportReady()) return;
       if (!nickname) {
          showNicknameNotice("Ismingizni kiriting.");
          return;
@@ -90,7 +111,15 @@ const Home = () => {
          showRoomIdNotice("Xona ID kiriting.");
          return;
       }
-      socket.emit('room:join', { nickname, roomId, avatarColor, avatarIcon });
+      const selectedNetworkMode = entryMode === 'online' ? NETWORK_MODES.ONLINE : NETWORK_MODES.LAN;
+      setNetworkMode(selectedNetworkMode);
+      socket.emit('room:join', {
+         nickname,
+         roomId,
+         avatarColor,
+         avatarIcon,
+         networkMode: selectedNetworkMode
+      });
    };
 
    useEffect(() => {
@@ -105,9 +134,8 @@ const Home = () => {
       return () => socket.off('error:msg', onError);
    }, [socket, mode]);
 
-
    return (
-      <motion.div
+      <MotionDiv
          initial={{ opacity: 0, scale: 0.9, y: 30 }}
          animate={{ opacity: 1, scale: 1, y: 0 }}
          transition={{ duration: 0.8, ease: 'easeOut' }}
@@ -141,8 +169,24 @@ const Home = () => {
 
          {mode === 'menu' && !entryMode && (
             <div className="menu-buttons home-actions">
-               <button className="btn-glass btn-primary" onClick={() => setEntryMode('lan')}>LAN</button>
-               <button className="btn-glass btn-secondary" onClick={() => setEntryMode('online')}>ONLINE</button>
+               <button
+                  className="btn-glass btn-primary"
+                  onClick={() => {
+                     setNetworkMode(NETWORK_MODES.LAN);
+                     setEntryMode('lan');
+                  }}
+               >
+                  LAN
+               </button>
+               <button
+                  className="btn-glass btn-secondary"
+                  onClick={() => {
+                     setNetworkMode(NETWORK_MODES.ONLINE);
+                     setEntryMode('online');
+                  }}
+               >
+                  ONLINE
+               </button>
             </div>
          )}
 
@@ -156,70 +200,72 @@ const Home = () => {
          )}
 
          {mode === 'create' && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="sub-menu">
+            <MotionDiv initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="sub-menu">
                {entryMode && (
-                  <div className="mode-chip subtle">REJIM: {entryMode === 'lan' ? 'LAN (ADMIN TOMOSHA)' : 'ONLINE'}</div>
+                  <div className="mode-chip subtle">REJIM: {entryMode === 'lan' ? 'LAN' : 'ONLINE'}</div>
                )}
+               <div className="form-header">
+                  {entryMode !== 'lan' && (
+                     <div className="input-group">
+                        <label>NICKNAME</label>
+                        <div className="nickname-row">
+                           <input
+                              type="text"
+                              placeholder="Ismingiz..."
+                              value={nickname}
+                              onChange={e => setNickname(e.target.value.slice(0, 15))}
+                              maxLength={15}
+                           />
+                           <button type="button" className="btn-glass btn-secondary nickname-random" onClick={generateRandomName} aria-label="Random nickname">
+                              {'\ud83c\udfb2'}
+                           </button>
+                        </div>
+                        {nicknameNotice && <div className="form-notice">{nicknameNotice}</div>}
+                     </div>
+                  )}
+                  {entryMode !== 'lan' && (
+                     <div className="home-avatar-preview">
+                        <div className="avatar-preview" style={{ background: avatarColor }}>
+                           <span>{avatarIcon}</span>
+                        </div>
+                        <div className="avatar-preview-label">AVATAR</div>
+                     </div>
+                  )}
+               </div>
                {entryMode !== 'lan' && (
-                  <>
-                     <div className="form-header">
-                        <div className="input-group">
-                           <label>NICKNAME</label>
-                           <div className="nickname-row">
-                              <input
-                                 type="text"
-                                 placeholder="Ismingiz..."
-                                 value={nickname}
-                                 onChange={e => setNickname(e.target.value.slice(0, 15))}
-                                 maxLength={15}
+                  <div className="avatar-picker">
+                     <div className="avatar-section">
+                        <div className="avatar-label">AVATAR RANGI</div>
+                        <div className="avatar-swatches">
+                           {avatarColors.map(color => (
+                              <button
+                                 key={color}
+                                 type="button"
+                                 className={`avatar-swatch ${avatarColor === color ? 'selected' : ''}`}
+                                 style={{ background: color }}
+                                 onClick={() => setAvatarColor(color)}
+                                 aria-label={`Avatar color ${color}`}
                               />
-                              <button type="button" className="btn-glass btn-secondary nickname-random" onClick={generateRandomName} aria-label="Random nickname">
-                                 {'\ud83c\udfb2'}
+                           ))}
+                        </div>
+                     </div>
+                     <div className="avatar-section">
+                        <div className="avatar-label">AVATAR IKKONASI</div>
+                        <div className="avatar-icons">
+                           {avatarIcons.map(icon => (
+                              <button
+                                 key={icon}
+                                 type="button"
+                                 className={`avatar-icon ${avatarIcon === icon ? 'selected' : ''}`}
+                                 onClick={() => setAvatarIcon(icon)}
+                                 aria-label={`Avatar icon ${icon}`}
+                              >
+                                 {icon}
                               </button>
-                           </div>
-                           {nicknameNotice && <div className="form-notice">{nicknameNotice}</div>}
-                        </div>
-                        <div className="home-avatar-preview">
-                           <div className="avatar-preview" style={{ background: avatarColor }}>
-                              <span>{avatarIcon}</span>
-                           </div>
-                           <div className="avatar-preview-label">AVATAR</div>
+                           ))}
                         </div>
                      </div>
-                     <div className="avatar-picker">
-                        <div className="avatar-section">
-                           <div className="avatar-label">AVATAR RANGI</div>
-                           <div className="avatar-swatches">
-                              {avatarColors.map(color => (
-                                 <button
-                                    key={color}
-                                    type="button"
-                                    className={`avatar-swatch ${avatarColor === color ? 'selected' : ''}`}
-                                    style={{ background: color }}
-                                    onClick={() => setAvatarColor(color)}
-                                    aria-label={`Avatar color ${color}`}
-                                 />
-                              ))}
-                           </div>
-                        </div>
-                        <div className="avatar-section">
-                           <div className="avatar-label">AVATAR IKKONASI</div>
-                           <div className="avatar-icons">
-                              {avatarIcons.map(icon => (
-                                 <button
-                                    key={icon}
-                                    type="button"
-                                    className={`avatar-icon ${avatarIcon === icon ? 'selected' : ''}`}
-                                    onClick={() => setAvatarIcon(icon)}
-                                    aria-label={`Avatar icon ${icon}`}
-                                 >
-                                    {icon}
-                                 </button>
-                              ))}
-                           </div>
-                        </div>
-                     </div>
-                  </>
+                  </div>
                )}
                <div className="input-group" style={{ margin: '20px 0' }}>
                   <label>BOSHLANG'ICH KARTALAR</label>
@@ -285,15 +331,18 @@ const Home = () => {
                      AVTO TORTISH
                   </label>
                </div>
+               {entryMode === 'lan' && (
+                  <div className="form-notice">LAN: yaratuvchi kuzatuvchi bo'ladi (o'ynamaydi).</div>
+               )}
                <div className="form-row">
                   <button className="btn-glass btn-primary" onClick={handleCreate}>O'YINNI BOSHLASH</button>
                   <button className="btn-glass btn-secondary" onClick={() => setMode('menu')}>ORTGA</button>
                </div>
-            </motion.div>
+            </MotionDiv>
          )}
 
          {mode === 'join' && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="sub-menu">
+            <MotionDiv initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="sub-menu">
                {entryMode && (
                   <div className="mode-chip subtle">REJIM: {entryMode === 'lan' ? 'LAN' : 'ONLINE'}</div>
                )}
@@ -370,10 +419,10 @@ const Home = () => {
                   <button className="btn-glass btn-primary" onClick={handleJoin}>XONAGA KIRISH</button>
                   <button className="btn-glass btn-secondary" onClick={() => setMode('menu')}>ORTGA</button>
                </div>
-            </motion.div>
+            </MotionDiv>
          )}
 
-      </motion.div>
+      </MotionDiv>
    );
 };
 

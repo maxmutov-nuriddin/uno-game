@@ -1,5 +1,6 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import React, { useState, useEffect, useRef } from 'react';
-import { useSocket } from '../../context/SocketContext';
+import { useSocket } from '../../context/useSocket';
 import Hand from './Hand';
 import Card from './Card';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -7,7 +8,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
    const socket = useSocket();
    const {
-      roomId,
       players,
       activeCard,
       previousActiveCard,
@@ -68,6 +68,7 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
    const leftOpponents = opponents.slice(0, splitIndex);
    const rightOpponents = opponents.slice(splitIndex);
    const reactionEmojis = ['\ud83d\udd25', '\ud83d\ude02', '\ud83d\ude0e'];
+   const MotionDiv = motion.div;
 
    const pushFlyBanner = (textLabel) => {
       const id = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
@@ -95,7 +96,7 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
       try {
          audio.pause();
          audio.currentTime = 0;
-      } catch (e) {
+      } catch {
          // ignore
       }
    };
@@ -127,7 +128,7 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
          if (playPromise && typeof playPromise.catch == 'function') {
             playPromise.catch(() => {});
          }
-      } catch (e) {
+      } catch {
          // ignore sound errors
       }
    };
@@ -138,7 +139,7 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
       return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
    };
 
-      const clearSelection = () => setSelectedIds([]);
+   const clearSelection = () => setSelectedIds([]);
 
    const onPlaySelected = () => {
       if (!isMyTurn || selectedIds.length === 0) return;
@@ -214,7 +215,7 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
       try {
          const stored = localStorage.getItem('uno_sound');
          if (stored === 'off') setSoundsEnabled(false);
-      } catch (e) {
+      } catch {
          // ignore
       }
    }, []);
@@ -222,7 +223,7 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
    useEffect(() => {
       try {
          localStorage.setItem('uno_sound', soundsEnabled ? 'on' : 'off');
-      } catch (e) {
+      } catch {
          // ignore
       }
    }, [soundsEnabled]);
@@ -466,16 +467,17 @@ const Board = ({ gameState, myHand, myId, winner, gameSummary, onExit }) => {
       }, 1500);
    }, [lastPlayId, lastPlayEvent]);
 
+   useEffect(() => {
+      if (!winner || lastWinnerRef.current === winner) return;
+      lastWinnerRef.current = winner;
+      pushFlyBanner("G'OLIB!");
+   }, [winner]);
+
    const renderPlayerTile = (player, slotClass, options = {}) => {
       if (!player) return null;
       const isActive = player.id === turnPlayerId;
       const isMe = options.isMe;
       const cardCount = isMe ? myHand.length : player.cardCount;
-      useEffect(() => {
-      if (!winner || lastWinnerRef.current == winner) return;
-      lastWinnerRef.current = winner;
-      pushFlyBanner(`G'OLIB!`);
-   }, [winner]);
 
    return (
          <div className={`${slotClass} player-tile ${isActive ? 'active' : ''} ${options.compact ? 'compact' : ''} ${isMe ? 'me' : ''} ${cardCount === 1 ? 'hot-seat' : ''}`}>
