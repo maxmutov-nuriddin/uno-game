@@ -38,6 +38,16 @@ const parseFirestoreErrorMessage = async (response) => {
    }
 };
 
+const isPreconditionConflict = (errorMessage) => {
+   const normalized = String(errorMessage || '').toLowerCase();
+   return (
+      /update[_\s]?time/.test(normalized) ||
+      /currentdocument\.updatetime/.test(normalized) ||
+      (/stored version/.test(normalized) && /required base version/.test(normalized)) ||
+      /does not match the required base version/.test(normalized)
+   );
+};
+
 export const getRoomDoc = async (roomId) => {
    const started = nowMs();
    const response = await fetch(buildUrl(roomId), {
@@ -84,8 +94,7 @@ export const patchRoomDoc = async (roomId, state, options = {}) => {
    if (response.status === 409 || response.status === 412) return { ok: false, conflict: true, durationMs };
    if (response.status === 400) {
       const errorMessage = await parseFirestoreErrorMessage(response);
-      const isUpdateTimeError = /update[_\s]?time/i.test(errorMessage) || /currentdocument\.updatetime/i.test(errorMessage);
-      if (isUpdateTimeError) {
+      if (isPreconditionConflict(errorMessage)) {
          return { ok: false, conflict: true, durationMs, errorMessage };
       }
       return { ok: false, status: 400, durationMs, errorMessage };
