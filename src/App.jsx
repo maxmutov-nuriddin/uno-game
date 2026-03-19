@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { SocketProvider } from './context/SocketContext';
 import { useSocket, useSocketControls } from './context/useSocket';
 import Home from './components/Home';
@@ -29,6 +29,7 @@ function Content() {
   const [gameSummary, setGameSummary] = useState(null);
   const [isRestoring, setIsRestoring] = useState(true);
   const [transportStatus, setTransportStatus] = useState(INITIAL_TRANSPORT_STATUS);
+  const restoredRef = useRef(false);
 
   const addToast = useCallback((type, message) => {
     const id = Date.now();
@@ -51,35 +52,43 @@ function Content() {
 
   useEffect(() => {
     if (!socket) return;
+    if (restoredRef.current) return;
 
-    // Restore Logic
     const storedSession = localStorage.getItem('uno_session');
-    if (storedSession) {
-      try {
-        const { roomId, sessionToken, networkMode: storedMode } = JSON.parse(storedSession);
-        if (storedMode && storedMode !== networkMode) {
-          setNetworkMode(storedMode);
-          return;
-        }
-        socket.emit('session:restore', { roomId, sessionToken });
-      } catch (e) {
-        localStorage.removeItem('uno_session');
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setIsRestoring(false);
-      }
-    } else {
+    if (!storedSession) {
+      restoredRef.current = true;
       setIsRestoring(false);
+      return;
     }
 
-    const onRestored = ({ ok, role, roomId }) => {
+    let parsed;
+    try {
+      parsed = JSON.parse(storedSession);
+    } catch {
+      localStorage.removeItem('uno_session');
+      restoredRef.current = true;
+      setIsRestoring(false);
+      return;
+    }
+
+    const { roomId, sessionToken, networkMode: storedMode } = parsed;
+    if (storedMode && storedMode !== networkMode) {
+      setNetworkMode(storedMode);
+      return;
+    }
+
+    restoredRef.current = true;
+
+    const onRestored = ({ ok, role, roomId: restoredRoomId }) => {
       setIsRestoring(false);
       if (ok) {
-        setLobbyState(prev => ({ ...prev, roomId, isAdmin: role === 'admin', myId: socket.id }));
+        setLobbyState(prev => ({ ...prev, roomId: restoredRoomId, isAdmin: role === 'admin' }));
       } else {
         localStorage.removeItem('uno_session');
       }
     };
     socket.on('session:restored', onRestored);
+    socket.emit('session:restore', { roomId, sessionToken });
 
     return () => socket.off('session:restored', onRestored);
   }, [socket, networkMode, setNetworkMode]);
@@ -100,14 +109,14 @@ function Content() {
 
     const handleJoin = ({ roomId, sessionToken, role }) => {
       localStorage.setItem('uno_session', JSON.stringify({ roomId, sessionToken, networkMode }));
-      setLobbyState(prev => ({ ...prev, roomId, isAdmin: role === 'admin', myId: socket.id }));
+      setLobbyState(prev => ({ ...prev, roomId, isAdmin: role === 'admin' }));
       setView('lobby');
     };
 
     socket.on('room:created', handleJoin);
     socket.on('room:joined', handleJoin);
 
-      socket.on('stateUpdate', (data) => {
+    socket.on('stateUpdate', (data) => {
       setGameState(data);
       if (data.status === 'playing') setView('game');
       else if (data.status === 'lobby') setView('lobby');

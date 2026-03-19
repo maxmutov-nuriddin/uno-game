@@ -75,6 +75,7 @@ export class FirebaseSocket {
       this.pendingWrites = 0;
       this.transportStatus = { ...INITIAL_TRANSPORT_STATUS };
       this.joiningInProgress = false;
+      this.creatingInProgress = false;
       this._visibilityTimer = null;
    }
 
@@ -117,6 +118,7 @@ export class FirebaseSocket {
          this._visibilityTimer = null;
       }
       this.joiningInProgress = false;
+      this.creatingInProgress = false;
       this.activeRequests = 0;
       this.pendingWrites = 0;
       this.setTransportStatus({ isSyncing: false, pendingWrites: 0 });
@@ -348,39 +350,45 @@ export class FirebaseSocket {
    }
 
    async createRoom(payload) {
-      const nickname = String(payload.nickname || '').trim() || 'Player';
-      const sessionToken = createId();
-      const roomMode = normalizeRoomMode(payload.networkMode);
+      if (this.creatingInProgress) return;
+      this.creatingInProgress = true;
+      try {
+         const nickname = String(payload.nickname || '').trim() || 'Player';
+         const sessionToken = createId();
+         const roomMode = normalizeRoomMode(payload.networkMode);
 
-      for (let attempt = 0; attempt < 30; attempt += 1) {
-         const roomId = randomRoomId();
-         const state = createRoomState({
-            roomId,
-            nickname,
-            sessionToken,
-            startCardsCount: payload.startCardsCount,
-            autoDrawEnabled: payload.autoDrawEnabled,
-            avatarColor: payload.avatarColor,
-            avatarIcon: payload.avatarIcon,
-            hostSpectator: roomMode === 'lan' ? true : !!payload.hostSpectator,
-            networkMode: roomMode
-         });
+         for (let attempt = 0; attempt < 30; attempt += 1) {
+            const roomId = randomRoomId();
+            const state = createRoomState({
+               roomId,
+               nickname,
+               sessionToken,
+               startCardsCount: payload.startCardsCount,
+               autoDrawEnabled: payload.autoDrawEnabled,
+               avatarColor: payload.avatarColor,
+               avatarIcon: payload.avatarIcon,
+               hostSpectator: roomMode === 'lan' ? true : !!payload.hostSpectator,
+               networkMode: roomMode
+            });
 
-         const created = await this.writeRoomDoc(roomId, state, { createOnly: true });
-         if (created.conflict) continue;
-         if (!created.ok) {
-            this.emitLocal('error:msg', { message: formatFirestoreError(created, "Xona yaratib bo'lmadi.") });
+            const created = await this.writeRoomDoc(roomId, state, { createOnly: true });
+            if (created.conflict) continue;
+            if (!created.ok) {
+               this.emitLocal('error:msg', { message: formatFirestoreError(created, "Xona yaratib bo'lmadi.") });
+               return;
+            }
+
+            this.setSession(roomId, sessionToken, 'admin');
+            this.lastUpdateTime = created.updateTime || null;
+            this.emitLocal('room:created', { roomId, sessionToken, role: 'admin' });
+            this.processState(state);
             return;
          }
 
-         this.setSession(roomId, sessionToken, 'admin');
-         this.lastUpdateTime = created.updateTime || null;
-         this.emitLocal('room:created', { roomId, sessionToken, role: 'admin' });
-         this.processState(state);
-         return;
+         this.emitLocal('error:msg', { message: "Xona ID band, qayta urinib ko'ring." });
+      } finally {
+         this.creatingInProgress = false;
       }
-
-      this.emitLocal('error:msg', { message: "Xona ID band, qayta urinib ko'ring." });
    }
 
    async joinRoom(payload) {
@@ -481,43 +489,67 @@ export class FirebaseSocket {
          return;
       }
 
-      for (let attempt = 0; attempt < MAX_RETRIES; attempt += 1) {
-         const doc = await this.readRoomDoc(roomId);
-         if (!doc.ok) {
-            this.emitLocal('session:restored', { ok: false });
-            return;
-         }
+      const doc = await this.readRoomDoc(roomId);
+      if (!doc.ok) {
+         this.emitLocal('session:restored', { ok: false });
+         return;
+      }
 
-         const state = cloneState(doc.state);
-         const session = state.sessions[sessionToken];
-         if (!session) {
-            this.emitLocal('session:restored', { ok: false });
-            return;
-         }
+      const state = cloneState(doc.state);
+      const session = state.sessions[sessionToken];
+      if (!session) {
+         this.emitLocal('session:restored', { ok: false });
+         return;
+      }
 
-         const player = getPlayerBySession(state, sessionToken);
+      if (state.status === 'closed') {
+         this.emitLocal('session:restored', { ok: false });
+         return;
+      }
+
+      const player = getPlayerBySession(state, sessionToken);
+      const needsWrite = player && (!player.isOnline || player.isAway);
+
+      if (needsWrite) {
          if (player) {
             player.isOnline = true;
             player.isAway = false;
          }
 
-         incVersion(state);
-         const saved = await this.writeRoomDoc(roomId, state, { updateTime: doc.updateTime });
-         if (saved.conflict) continue;
-         if (!saved.ok) {
-            this.emitLocal('session:restored', { ok: false });
+         for (let attempt = 0; attempt < MAX_RETRIES; attempt += 1) {
+            const freshDoc = attempt === 0 ? doc : await this.readRoomDoc(roomId);
+            if (!freshDoc.ok) {
+               this.emitLocal('session:restored', { ok: false });
+               return;
+            }
+            const freshState = attempt === 0 ? state : cloneState(freshDoc.state);
+            if (attempt > 0) {
+               const fp = getPlayerBySession(freshState, sessionToken);
+               if (fp) { fp.isOnline = true; fp.isAway = false; }
+            }
+            incVersion(freshState);
+            const saved = await this.writeRoomDoc(roomId, freshState, { updateTime: freshDoc.updateTime });
+            if (saved.conflict) continue;
+            if (!saved.ok) {
+               this.emitLocal('session:restored', { ok: false });
+               return;
+            }
+            const role = roomRoleForSession(freshState, sessionToken);
+            this.setSession(roomId, sessionToken, role);
+            this.lastUpdateTime = saved.updateTime || null;
+            this.emitLocal('session:restored', { ok: true, role, roomId });
+            this.processState(freshState);
             return;
          }
-
+         this.emitLocal('session:restored', { ok: false });
+      } else {
+         // Yozish shart emas — to'g'ridan-to'g'ri tiklash
          const role = roomRoleForSession(state, sessionToken);
          this.setSession(roomId, sessionToken, role);
-         this.lastUpdateTime = saved.updateTime || null;
+         this.lastUpdateTime = doc.updateTime || null;
          this.emitLocal('session:restored', { ok: true, role, roomId });
          this.processState(state);
-         return;
       }
-
-      this.emitLocal('session:restored', { ok: false });
    }
 
    async handleEmit(eventName, payload) {
@@ -635,6 +667,14 @@ export class FirebaseSocket {
                return { ok: true };
             });
             this.stopPolling();
+            if (this._visibilityTimer) {
+               clearTimeout(this._visibilityTimer);
+               this._visibilityTimer = null;
+            }
+            this.roomId = null;
+            this.sessionToken = null;
+            this.role = null;
+            this.lastUpdateTime = null;
             return;
          default:
             return;

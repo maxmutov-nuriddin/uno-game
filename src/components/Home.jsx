@@ -131,9 +131,11 @@ const Home = () => {
       const onError = ({ message }) => {
          setIsJoining(false);
          setIsCreating(false);
-         if (mode !== 'join') return;
-         if (message === 'Xona topilmadi!') {
-            showRoomIdNotice("Bunday xona yo'q.");
+         if (mode === 'join') {
+            if (message === 'Xona topilmadi!') showRoomIdNotice("Bunday xona yo'q.");
+            else if (message) showRoomIdNotice(message);
+         } else if (mode === 'create') {
+            if (message) showNicknameNotice(message);
          }
       };
       socket.on('error:msg', onError);
