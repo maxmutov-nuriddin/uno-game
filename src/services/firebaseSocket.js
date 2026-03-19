@@ -16,7 +16,7 @@ import {
    startGame
 } from './unoState.js';
 
-const POLL_MS = 850;
+const POLL_MS = 1200;
 const MAX_RETRIES = 8;
 const MAX_PLAYERS = 10;
 
@@ -74,6 +74,8 @@ export class FirebaseSocket {
       this.activeRequests = 0;
       this.pendingWrites = 0;
       this.transportStatus = { ...INITIAL_TRANSPORT_STATUS };
+      this.joiningInProgress = false;
+      this._visibilityTimer = null;
    }
 
    on(eventName, handler) {
@@ -110,6 +112,11 @@ export class FirebaseSocket {
 
    close() {
       this.stopPolling();
+      if (this._visibilityTimer) {
+         clearTimeout(this._visibilityTimer);
+         this._visibilityTimer = null;
+      }
+      this.joiningInProgress = false;
       this.activeRequests = 0;
       this.pendingWrites = 0;
       this.setTransportStatus({ isSyncing: false, pendingWrites: 0 });
@@ -377,76 +384,93 @@ export class FirebaseSocket {
    }
 
    async joinRoom(payload) {
-      const roomId = normalizeRoomId(payload.roomId);
-      if (!roomId) {
-         this.emitLocal('error:msg', { message: 'Xona ID kiriting.' });
-         return;
-      }
-
-      const nickname = String(payload.nickname || '').trim() || 'Player';
-      const requestedMode = normalizeRoomMode(payload.networkMode);
-
-      for (let attempt = 0; attempt < MAX_RETRIES; attempt += 1) {
-         const doc = await this.readRoomDoc(roomId);
-         if (doc.notFound) {
-            this.emitLocal('error:msg', { message: 'Xona topilmadi!' });
-            return;
-         }
-         if (!doc.ok) {
-            this.emitLocal('error:msg', { message: formatFirestoreError(doc, 'Xatolik yuz berdi.') });
+      if (this.joiningInProgress) return;
+      this.joiningInProgress = true;
+      try {
+         const roomId = normalizeRoomId(payload.roomId);
+         if (!roomId) {
+            this.emitLocal('error:msg', { message: 'Xona ID kiriting.' });
             return;
          }
 
-         const state = cloneState(doc.state);
-         const roomMode = normalizeRoomMode(state.networkMode);
-         if (roomMode !== requestedMode) {
-            this.emitLocal('error:msg', {
-               message: roomMode === 'lan'
-                  ? 'Bu xona LAN rejimida. LAN ni tanlab kiring.'
-                  : 'Bu xona ONLINE rejimida. ONLINE ni tanlab kiring.'
-            });
-            return;
-         }
-         if (state.status !== 'lobby') {
-            this.emitLocal('error:msg', { message: "O'yin boshlanib bo'lgan!" });
-            return;
-         }
-         if (state.players.length >= MAX_PLAYERS) {
-            this.emitLocal('error:msg', { message: "Xona to'la!" });
-            return;
-         }
-
+         const nickname = String(payload.nickname || '').trim() || 'Player';
+         const requestedMode = normalizeRoomMode(payload.networkMode);
          const sessionToken = createId();
          const playerId = createId();
-         state.players.push({
-            id: playerId,
-            name: nickname,
-            sessionToken,
-            isOnline: true,
-            isAway: false,
-            ready: false,
-            avatarColor: payload.avatarColor || '#29b6f6',
-            avatarIcon: payload.avatarIcon || 'A',
-            hand: []
-         });
-         state.sessions[sessionToken] = { isSpectator: false, playerId };
-         incVersion(state);
 
-         const saved = await this.writeRoomDoc(roomId, state, { updateTime: doc.updateTime });
-         if (saved.conflict) continue;
-         if (!saved.ok) {
-            this.emitLocal('error:msg', { message: formatFirestoreError(saved, "Xonaga qo'shilib bo'lmadi.") });
+         for (let attempt = 0; attempt < MAX_RETRIES; attempt += 1) {
+            const doc = await this.readRoomDoc(roomId);
+            if (doc.notFound) {
+               this.emitLocal('error:msg', { message: 'Xona topilmadi!' });
+               return;
+            }
+            if (!doc.ok) {
+               this.emitLocal('error:msg', { message: formatFirestoreError(doc, 'Xatolik yuz berdi.') });
+               return;
+            }
+
+            const state = cloneState(doc.state);
+
+            // Agar avvalgi retry muvaffaqiyatli bo'lsa, sessiyani topamiz
+            if (state.sessions[sessionToken]) {
+               const role = roomRoleForSession(state, sessionToken);
+               this.setSession(roomId, sessionToken, role);
+               this.lastUpdateTime = doc.updateTime || null;
+               this.emitLocal('room:joined', { roomId, sessionToken, role });
+               this.processState(state);
+               return;
+            }
+
+            const roomMode = normalizeRoomMode(state.networkMode);
+            if (roomMode !== requestedMode) {
+               this.emitLocal('error:msg', {
+                  message: roomMode === 'lan'
+                     ? 'Bu xona LAN rejimida. LAN ni tanlab kiring.'
+                     : 'Bu xona ONLINE rejimida. ONLINE ni tanlab kiring.'
+               });
+               return;
+            }
+            if (state.status !== 'lobby') {
+               this.emitLocal('error:msg', { message: "O'yin boshlanib bo'lgan!" });
+               return;
+            }
+            if (state.players.length >= MAX_PLAYERS) {
+               this.emitLocal('error:msg', { message: "Xona to'la!" });
+               return;
+            }
+
+            state.players.push({
+               id: playerId,
+               name: nickname,
+               sessionToken,
+               isOnline: true,
+               isAway: false,
+               ready: false,
+               avatarColor: payload.avatarColor || '#29b6f6',
+               avatarIcon: payload.avatarIcon || 'A',
+               hand: []
+            });
+            state.sessions[sessionToken] = { isSpectator: false, playerId };
+            incVersion(state);
+
+            const saved = await this.writeRoomDoc(roomId, state, { updateTime: doc.updateTime });
+            if (saved.conflict) continue;
+            if (!saved.ok) {
+               this.emitLocal('error:msg', { message: formatFirestoreError(saved, "Xonaga qo'shilib bo'lmadi.") });
+               return;
+            }
+
+            this.setSession(roomId, sessionToken, 'player');
+            this.lastUpdateTime = saved.updateTime || null;
+            this.emitLocal('room:joined', { roomId, sessionToken, role: 'player' });
+            this.processState(state);
             return;
          }
 
-         this.setSession(roomId, sessionToken, 'player');
-         this.lastUpdateTime = saved.updateTime || null;
-         this.emitLocal('room:joined', { roomId, sessionToken, role: 'player' });
-         this.processState(state);
-         return;
+         this.emitLocal('error:msg', { message: 'Konflikt, qayta urinib ko\'ring.' });
+      } finally {
+         this.joiningInProgress = false;
       }
-
-      this.emitLocal('error:msg', { message: 'Konflikt, qayta urinib ko\'ring.' });
    }
 
    async restoreSession(payload) {
@@ -551,14 +575,21 @@ export class FirebaseSocket {
                return { ok: true };
             });
             return;
-         case 'player:visibility':
-            await this.mutateRoom((state) => {
-               const player = getPlayerBySession(state, this.sessionToken);
-               if (!player) return { ok: true };
-               player.isAway = !!payload.isAway;
-               return { ok: true };
-            });
+         case 'player:visibility': {
+            const isAway = !!payload.isAway;
+            if (this._visibilityTimer) clearTimeout(this._visibilityTimer);
+            this._visibilityTimer = setTimeout(async () => {
+               this._visibilityTimer = null;
+               await this.mutateRoom((state) => {
+                  const player = getPlayerBySession(state, this.sessionToken);
+                  if (!player) return { ok: true };
+                  if (player.isAway === isAway) return { ok: true };
+                  player.isAway = isAway;
+                  return { ok: true };
+               });
+            }, 2000);
             return;
+         }
          case 'reaction:send':
             await this.mutateRoom((state) => {
                const player = getPlayerBySession(state, this.sessionToken);

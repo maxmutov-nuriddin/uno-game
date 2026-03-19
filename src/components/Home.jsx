@@ -27,6 +27,8 @@ const Home = () => {
    const [entryMode, setEntryMode] = useState(null);
    const [nicknameNotice, setNicknameNotice] = useState('');
    const [roomIdNotice, setRoomIdNotice] = useState('');
+   const [isJoining, setIsJoining] = useState(false);
+   const [isCreating, setIsCreating] = useState(false);
    const [avatarColor, setAvatarColor] = useState(avatarColors[0]);
    const [avatarIcon, setAvatarIcon] = useState(avatarIcons[0]);
    const MotionDiv = motion.div;
@@ -82,13 +84,14 @@ const Home = () => {
    };
 
    const handleCreate = () => {
-      if (!ensureTransportReady()) return;
+      if (isCreating || !ensureTransportReady()) return;
       const selectedNetworkMode = entryMode === 'online' ? NETWORK_MODES.ONLINE : NETWORK_MODES.LAN;
       const requiresNickname = selectedNetworkMode !== NETWORK_MODES.LAN;
       if (requiresNickname && !nickname.trim()) {
          showNicknameNotice("Ismingizni kiriting.");
          return;
       }
+      setIsCreating(true);
       setNetworkMode(selectedNetworkMode);
       socket.emit('room:create', {
          nickname: requiresNickname ? nickname : '',
@@ -102,7 +105,7 @@ const Home = () => {
    };
 
    const handleJoin = () => {
-      if (!ensureTransportReady()) return;
+      if (isJoining || !ensureTransportReady()) return;
       if (!nickname) {
          showNicknameNotice("Ismingizni kiriting.");
          return;
@@ -111,6 +114,7 @@ const Home = () => {
          showRoomIdNotice("Xona ID kiriting.");
          return;
       }
+      setIsJoining(true);
       const selectedNetworkMode = entryMode === 'online' ? NETWORK_MODES.ONLINE : NETWORK_MODES.LAN;
       setNetworkMode(selectedNetworkMode);
       socket.emit('room:join', {
@@ -125,6 +129,8 @@ const Home = () => {
    useEffect(() => {
       if (!socket) return;
       const onError = ({ message }) => {
+         setIsJoining(false);
+         setIsCreating(false);
          if (mode !== 'join') return;
          if (message === 'Xona topilmadi!') {
             showRoomIdNotice("Bunday xona yo'q.");
@@ -335,8 +341,10 @@ const Home = () => {
                   <div className="form-notice">LAN: yaratuvchi kuzatuvchi bo'ladi (o'ynamaydi).</div>
                )}
                <div className="form-row">
-                  <button className="btn-glass btn-primary" onClick={handleCreate}>O'YINNI BOSHLASH</button>
-                  <button className="btn-glass btn-secondary" onClick={() => setMode('menu')}>ORTGA</button>
+                  <button className="btn-glass btn-primary" onClick={handleCreate} disabled={isCreating}>
+                     {isCreating ? 'YARATILMOQDA...' : "O'YINNI BOSHLASH"}
+                  </button>
+                  <button className="btn-glass btn-secondary" onClick={() => setMode('menu')} disabled={isCreating}>ORTGA</button>
                </div>
             </MotionDiv>
          )}
@@ -416,8 +424,10 @@ const Home = () => {
                   {roomIdNotice && <div className="form-notice">{roomIdNotice}</div>}
                </div>
                <div className="form-row">
-                  <button className="btn-glass btn-primary" onClick={handleJoin}>XONAGA KIRISH</button>
-                  <button className="btn-glass btn-secondary" onClick={() => setMode('menu')}>ORTGA</button>
+                  <button className="btn-glass btn-primary" onClick={handleJoin} disabled={isJoining}>
+                     {isJoining ? 'KIRILMOQDA...' : 'XONAGA KIRISH'}
+                  </button>
+                  <button className="btn-glass btn-secondary" onClick={() => setMode('menu')} disabled={isJoining}>ORTGA</button>
                </div>
             </MotionDiv>
          )}

@@ -203,26 +203,32 @@ const applyUnoPenalty = (state, currentPlayerId) => {
 
 const autoDrawIfNeeded = (state) => {
    if (state.pendingDrawCount > 0 || state.status !== 'playing') return;
-   let safety = state.players.length;
-   while (safety > 0) {
-      safety -= 1;
-      const player = getCurrentPlayer(state);
-      if (!player) return;
-      if (hasPlayable(state, player)) return;
+   const player = getCurrentPlayer(state);
+   if (!player) return;
+   if (hasPlayable(state, player)) return;
 
-      const card = drawCardFromDeck(state);
-      if (card) {
-         player.hand.push(card);
-         state.cardsDrawnByPlayer[player.id] = (state.cardsDrawnByPlayer[player.id] || 0) + 1;
-         updateMaxHand(state, player);
-         if (player.hand.length > 1) {
-            state.pendingUnoIds = state.pendingUnoIds.filter((id) => id !== player.id);
-         }
-         if (validateMove(card, state.activeCard, state.currentColor)) return;
+   const card = drawCardFromDeck(state);
+   if (card) {
+      player.hand.push(card);
+      state.cardsDrawnByPlayer[player.id] = (state.cardsDrawnByPlayer[player.id] || 0) + 1;
+      updateMaxHand(state, player);
+      if (player.hand.length > 1) {
+         state.pendingUnoIds = state.pendingUnoIds.filter((id) => id !== player.id);
       }
-
-      state.turnIndex = nextPlayerIndex(state, 1);
+      if (validateMove(card, state.activeCard, state.currentColor)) {
+         state.justDrewPlayablePlayerId = player.id;
+         state.hasDrawnThisTurnPlayerId = player.id;
+         return;
+      }
    }
+
+   // O'ynaydigan karta yo'q — navbatni ketma-ket o'tkazish
+   let idx = state.turnIndex + state.direction;
+   if (idx < 0) idx += state.players.length;
+   idx = idx % state.players.length;
+   state.turnIndex = idx;
+   state.justDrewPlayablePlayerId = null;
+   state.hasDrawnThisTurnPlayerId = null;
 };
 const finishGame = (state, winner) => {
    state.status = 'finished';
@@ -306,7 +312,7 @@ export const startGame = (state) => {
    state.cardsDrawnByPlayer = {};
    state.streakByPlayer = {};
    state.maxHandSizeByPlayer = {};
-   state.turnIndex = Math.floor(Math.random() * state.players.length);
+   state.turnIndex = 0;
 
    state.players.forEach((player) => {
       player.hand = [];
